@@ -51,7 +51,8 @@ def _update_for_uuid_queues(registry):
     extra_queues = []
     try:
         import snovault.elasticsearch.uuid_queue as queue_adapter
-    except ImportError:
+    except ImportError as ecp:
+        print(repr(ecp))
         log.info('No uuid_queue package in elasticsearch module')
     else:
         registry['UuidQueue'] = queue_adapter.QueueAdapter
@@ -71,6 +72,7 @@ def includeme(config):
         available_queues = [DEFAULT_QUEUE]
         registry['available_queues'] = available_queues
         _update_for_uuid_queues(registry)
+        print(registry['available_queues'])
         if not processes:
             registry[INDEXER] = Indexer(registry)
 
@@ -343,6 +345,7 @@ class Indexer(object):
         self.esstorage = registry[STORAGE]
         self.index = registry.settings['snovault.elasticsearch.index']
         if registry.settings.get('indexer'):
+            print('indexer is indexer')
             self.queue_server = None
             self.queue_worker = None
             self.worker_runs = []
@@ -376,6 +379,7 @@ class Indexer(object):
                 'db': queue_db,
             }
             if is_queue_server and queue_type in available_queues:
+                print('indexer is queue server with type')
                 if not queue_type or queue_type == DEFAULT_QUEUE:
                     self.queue_server = SimpleUuidServer(queue_options)
                 elif 'UuidQueue' in registry:
