@@ -52,8 +52,7 @@ def _update_for_uuid_queues(registry):
     try:
         import snovault.elasticsearch.uuid_queue as queue_adapter
     except ImportError as ecp:
-        print(repr(ecp))
-        log.info('No uuid_queue package in elasticsearch module')
+        log.info('No uuid_queue package in elasticsearch module: %s', repr(ecp))
     else:
         registry['UuidQueue'] = queue_adapter.QueueAdapter
         extra_queues = queue_adapter.QueueTypes.get_all()
