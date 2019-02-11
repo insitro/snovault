@@ -102,10 +102,10 @@ class SimpleUuidServer(object):    #pylint: disable=too-many-instance-attributes
             return self._uuids.pop()
         return None
 
-    def get_uuids(self, cnt):
+    def get_uuids(self, cnt, get_all=False):
         '''The only way to get uuids from queue'''
         uuids = []
-        if cnt == -1:
+        if cnt == -1 or get_all:
             cnt = len(self._uuids)
         if cnt:
             while cnt > 0:
