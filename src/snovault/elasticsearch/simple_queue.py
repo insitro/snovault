@@ -183,12 +183,12 @@ class SimpleUuidWorker(object):  #pylint: disable=too-many-instance-attributes
         self.chunk_size = self.queue_options['chunk_size']
 
     # Uuids
-    def get_uuids(self):
+    def get_uuids(self, get_all=False):
         '''Get all or some of uuids'''
         self.get_cnt += 1
         uuids = []
         if self.uuid_cnt == 0:
-            uuids = self._queue.get_uuids(self.queue_options['batch_size'])
+            uuids = self._queue.get_uuids(self.queue_options['batch_size'], get_all=get_all)
             self.uuid_cnt = len(uuids)
         self._queue.update_worker_conn(
             self.worker_id,
