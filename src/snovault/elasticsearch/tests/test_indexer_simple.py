@@ -84,6 +84,7 @@ class MockRegistry(dict):
         self[APP_FACTORY] = main
         self['available_queues'] = [queue_type]
         self.settings = {
+            'indexer': True,
             'snovault.elasticsearch.index': 'index-name',
             'queue_name': queue_name,
             'queue_type': queue_type,

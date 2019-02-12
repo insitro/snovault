@@ -229,7 +229,6 @@ class WorkerAdapter(object):
     '''
     def __init__(self, queue_name, queue_options, worker_id, queue):
         self._queue_name = queue_name
-        print('wrk adap', self._queue_name)
         self._queue_options = queue_options
         self.worker_id = worker_id
         self._queue = queue

@@ -26,7 +26,7 @@ class BaseQueueClient(object):
     def get_queue(self, queue_name, queue_type, is_worker=False):
         '''Create a Queue'''
         if queue_type == BASE_QUEUE_TYPE:
-            return BaseQueue()
+            return BaseQueue(queue_name)
         else:
             raise ValueError('Queue %s is not available' % queue_type)
 
@@ -40,7 +40,8 @@ class BaseQueueMeta(object):
     is handled through the adapter.
     '''
 
-    def __init__(self):
+    def __init__(self, queue_name):
+        self.queue_name = queue_name
         self._base_id = int(time.time() * 1000000)
         self._errors = []
         self._errors_count = 0
@@ -134,9 +135,10 @@ class BaseQueue(object):
     max_value_size = 262144  # Arbitraitly set to AWS SQS Limit
     queue_type = BASE_QUEUE_TYPE
 
-    def __init__(self):
+    def __init__(self, queue_name):
         self._uuids = []
-        self._qmeta = BaseQueueMeta()
+        self._qmeta = BaseQueueMeta(queue_name)
+        self.queue_name = self._qmeta.queue_name
 
     # Persistant Data
     def get_server_restarts(self):

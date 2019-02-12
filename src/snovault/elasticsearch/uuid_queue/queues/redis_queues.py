@@ -320,10 +320,6 @@ class RedisQueue(BaseQueue):
             is_worker=is_worker
         )
         self.queue_name = self._qmeta.queue_name
-        if is_worker:
-            print('wrk q', self.queue_name)
-        else:
-            print('srv q', self.queue_name)
 
     def _call_func(self, func_str, value=None):
         """
