@@ -51,6 +51,13 @@ class BaseQueueMeta(object):
         self._worker_conns = {}
         self._worker_results = {}
 
+    def get_server_restarts(self):  # pylint: disable=no-self-use
+        '''
+        Number of times server queue meta has been initialized
+        - Should return 1 for the base queue since to persistance
+        '''
+        return 1
+
     # Errors
     def add_errors(self, errors):
         """Add errors after worker finishes"""
@@ -104,7 +111,7 @@ class BaseQueueMeta(object):
         self._worker_results[worker_id].append(results)
 
     # Uuids
-    def has_uuids(self):
+    def has_uuids(self, errs_cnt=0):  # pylint: disable=unused-argument
         """Boolean for if uuid has uuids"""
         return self._uuid_count > 0
 
@@ -184,9 +191,9 @@ class BaseQueue(object):
         self._qmeta.save_work_results(worker_id, results)
 
     # Uuids
-    def has_uuids(self):
+    def has_uuids(self, errs_cnt=0):
         """Return Queue Meta has uuids"""
-        return self._qmeta.has_uuids()
+        return self._qmeta.has_uuids(errs_cnt=errs_cnt)
 
     def update_uuid_count(self, len_values):
         """Return Queue Meta update uuid count"""
@@ -195,7 +202,7 @@ class BaseQueue(object):
     def update_success_count(self, len_values):
         """Return Queue Meta success uuid count"""
         return self._qmeta.update_success_count(len_values)
-    
+
     def update_errors_count(self, len_values):
         """Return Queue Meta errors uuid count"""
         return self._qmeta.update_errors_count(len_values)
@@ -246,10 +253,12 @@ class BaseQueue(object):
                 failed_uuids.append(uuid)
         return bytes_added, failed_uuids
 
+    # Run
     def update_finished(self, given_worker_id, given_results):
         """Update queue and queue meta for finished work"""
         msg = 'Worker id(%s) DNE.' % given_worker_id
         worker_conns = self.get_worker_conns()
+        print(worker_conns)
         for worker_id, worker_conn in worker_conns.items():
             if worker_id == given_worker_id:
                 errors_added = self.add_errors(worker_id, given_results['errors'])
@@ -268,3 +277,8 @@ class BaseQueue(object):
                     msg = 'Okay'
                 break
         return msg
+
+    # Run
+    def close_indexing(self):
+        '''Close indexing sessions'''
+        pass

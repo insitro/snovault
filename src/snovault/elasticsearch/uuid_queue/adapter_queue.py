@@ -101,8 +101,7 @@ class QueueAdapter(object):
         self.queue_id = str(self._start_us)
         self._queue = self._get_queue(queue_name)
         self._queue_name = self._queue.queue_name
-        print('srv adap', self._queue_name)
-        
+
 
     # Errors
     def _has_errors(self):
@@ -147,9 +146,9 @@ class QueueAdapter(object):
         self._queue.update_worker_conn(worker_id, uuid_cnt, get_cnt)
 
     # Uuids
-    def has_uuids(self): #
+    def has_uuids(self, errs_cnt=0):  # pylint: disable=unused-argument
         '''Are there uuids in the queue'''
-        return self._queue.has_uuids()
+        return self._queue.has_uuids(errs_cnt=errs_cnt)
 
     def _load_uuids(self, uuids): #
         """
@@ -197,9 +196,9 @@ class QueueAdapter(object):
         return success_cnt
 
     # Run
-    def is_indexing(self): #
+    def is_indexing(self, errs_cnt=0):
         '''Is an indexing process currently running'''
-        if self.has_uuids() or self._has_errors():
+        if self.has_uuids(errs_cnt=errs_cnt) or self._has_errors():
             return True
         worker_conns = self._queue.get_worker_conns()
         for worker_conn in worker_conns.values():
@@ -218,6 +217,10 @@ class QueueAdapter(object):
                 is_worker=is_worker,
             )
         return None
+
+    def close_indexing(self):
+        '''Close indexing sessions'''
+        self._queue.close_indexing()
 
 
 class WorkerAdapter(object):
@@ -253,7 +256,6 @@ class WorkerAdapter(object):
             uuids = self._queue.get_uuids(1)
         else:
             combined_uuids_list = self._queue.get_uuids(1)
-            print('_get uuids comb', len(combined_uuids_list))
             for combined_uuids in combined_uuids_list:
                 uncombined_uuids = self._get_uncombined_uuids(
                     self._queue_options['uuid_len'],

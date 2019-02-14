@@ -62,23 +62,21 @@ class RedisQueueMeta(BaseQueueMeta):
         self._base_id = int(time.time() * 1000000)
         self._client = client
         if not is_worker:
-            restarts = self._get_server_restarts()
+            restarts = self.get_server_restarts()
             self.queue_name = queue_name + str(restarts)
             self._setup_redis_keys()
-            self.set_args()
+            self.set_args(kill_workers=True)
             self._init_persistant_data()
-            print('srv qmeta', self.queue_name)
         else:
             self.queue_name = queue_name
             self._setup_redis_keys()
-            print('wrk qmeta', self.queue_name)
 
     # Persistant Server Data
     def _init_persistant_data(self):
         # persistant data : server restarts
         self._client.incrby(PD_RESTARTS, 1)
 
-    def _get_server_restarts(self):
+    def get_server_restarts(self):
         '''
         Number of times server queue meta has been initialized
         - Should be the number of times the server has started
@@ -196,11 +194,11 @@ class RedisQueueMeta(BaseQueueMeta):
             return 0
         return uuid_count
 
-    def has_uuids(self):
+    def has_uuids(self, errs_cnt=0):
         """Boolean for if uuid has uuids"""
         added_cnt = int(self._client.get(self._key_addedcount))
         success_cnt = int(self._client.get(self._key_successescount))
-        errors_cnt = int(self._client.get(self._key_errorscount))
+        errors_cnt = errs_cnt + int(self._client.get(self._key_errorscount))
         cnt = added_cnt - (success_cnt + errors_cnt)
         return cnt > 0
 
@@ -259,15 +257,16 @@ class RedisQueueMeta(BaseQueueMeta):
         self._key_worker_conn = self._key_metabase + ':wk'
         self._key_worker_results = self._key_metabase + ':wr'
 
-    def set_args(self):
+    def set_args(self, kill_workers=False):
         """Initialize indexing run args"""
         self._client.set(self._key_addedcount, 0)
         self._client.set(self._key_uuidcount, 0)
         self._client.delete(self._key_errors)
         self._client.set(self._key_errorscount, 0)
         self._client.set(self._key_successescount, 0)
-        # Worker Connections
-        self._client.delete(self._key_workers)
+        if kill_workers:
+            # Worker Connections
+            self._client.delete(self._key_workers)
 
     def get_run_args(self):
         '''Return run args needed for workers'''
@@ -334,7 +333,6 @@ class RedisQueue(BaseQueue):
         try:
             if value:
                 return func(self.queue_name, value)
-            print('call func', self.queue_name)
             return func(self.queue_name)
         except ConnectionError:  # pylint: disable=undefined-variable
             return False
@@ -350,6 +348,11 @@ class RedisQueue(BaseQueue):
         if self._call_func(self.add_str, uuid):
             return True
         return False
+
+    # Run
+    def close_indexing(self):
+        '''Close indexing sessions'''
+        self._qmeta.set_args()
 
 
 class RedisPipeQueue(RedisQueue):

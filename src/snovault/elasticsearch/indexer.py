@@ -71,7 +71,6 @@ def includeme(config):
         available_queues = [DEFAULT_QUEUE]
         registry['available_queues'] = available_queues
         _update_for_uuid_queues(registry)
-        print(registry['available_queues'])
         if not processes:
             registry[INDEXER] = Indexer(registry)
 
@@ -272,7 +271,6 @@ def index(request):
         result = state.start_cycle(invalidated, result)
 
         # Do the work...
-        print('starting serve objects')
         errors, err_msg = indexer.serve_objects(
             request,
             invalidated,
@@ -280,7 +278,6 @@ def index(request):
             snapshot_id=snapshot_id,
             restart=restart,
         )
-        print('over serve objects')
         if err_msg:
             log.warning('Could not start indexing: %s', err_msg)
         result = state.finish_cycle(result,errors)
@@ -344,7 +341,6 @@ class Indexer(object):
         self.esstorage = registry[STORAGE]
         self.index = registry.settings['snovault.elasticsearch.index']
         if registry.settings.get('indexer'):
-            print('indexer is indexer')
             self.queue_server = None
             self.queue_worker = None
             self.worker_runs = []
@@ -378,7 +374,6 @@ class Indexer(object):
                 'db': queue_db,
             }
             if is_queue_server and queue_type in available_queues:
-                print('indexer is queue server with type')
                 if not queue_type or queue_type == DEFAULT_QUEUE:
                     self.queue_server = SimpleUuidServer(queue_options)
                 elif 'UuidQueue' in registry:
@@ -412,7 +407,6 @@ class Indexer(object):
         elif not uuids:
             err_msg = 'No uuids given to Indexer.serve_objects'
         else:
-            print('loaded uuids', len(uuids))
             uuids_loaded_len = self.queue_server.load_uuids(uuids)
             if not uuids_loaded_len:
                 err_msg = 'Uuids given to Indexer.serve_objects failed to load'
@@ -425,13 +419,9 @@ class Indexer(object):
                     )
                 )
         if err_msg is None:
-            # q_srv_meta = self.queue_server._queue._qmeta
-            # search_key = 'indxQ*'
-            # for key in q_srv_meta._client.keys(search_key):
-            #     q_srv_meta._client.delete(key)
             start_time = time.time()
             self.worker_runs = []
-            while self.queue_server.is_indexing():
+            while self.queue_server.is_indexing(errs_cnt=len(errors)):
                 if self.queue_worker and not self.queue_worker.is_running:
                     # Server Worker
                     uuids_ran = self.run_worker(
@@ -451,12 +441,12 @@ class Indexer(object):
                 if timeout and time.time() - start_time > timeout:
                     err_msg = 'Indexer sleep timeout'
                     break
+            self.queue_server.close_indexing()
         return errors, err_msg
 
     def run_worker(self, request, xmin, snapshot_id, restart):
         '''Run the uuid queue worker'''
-        batch_uuids = self.queue_worker.get_uuids(get_all=True)
-        print('run worker uuids', len(batch_uuids))
+        batch_uuids = self.queue_worker.get_uuids(get_all=False)
         log.warning(
             'running %s with %d',
             self.queue_worker.worker_id,
@@ -503,7 +493,6 @@ class Indexer(object):
                 errors.append(error)
             if (i + 1) % 1000 == 0:
                 log.info('Indexing %d', i + 1)
-
         return errors
 
     @staticmethod

@@ -91,7 +91,7 @@ class SimpleUuidServer(object):    #pylint: disable=too-many-instance-attributes
         self._worker_results[worker_id].append(results)
 
     # Uuids
-    def has_uuids(self):
+    def has_uuids(self, errs_cnt=0):  # pylint: disable=unused-argument
         '''Are there uuids in the queue'''
         if self._uuids:
             return True
@@ -137,9 +137,9 @@ class SimpleUuidServer(object):    #pylint: disable=too-many-instance-attributes
         return len(self._uuids)
 
     # Run
-    def is_indexing(self):
+    def is_indexing(self, errs_cnt=0):  # pylint: disable=unused-argument
         '''Is an indexing process currently running'''
-        if self.has_uuids() or self._has_errors():
+        if self.has_uuids(errs_cnt=errs_cnt) or self._has_errors():
             return True
         for worker_conn in self._worker_conns.values():
             if worker_conn['uuid_cnt']:
@@ -166,6 +166,10 @@ class SimpleUuidServer(object):    #pylint: disable=too-many-instance-attributes
                     msg = 'Okay'
                 break
         return msg
+
+    def close_indexing(self):
+        '''Close indexing sessions'''
+        pass
 
 
 class SimpleUuidWorker(object):  #pylint: disable=too-many-instance-attributes

@@ -64,6 +64,9 @@ class TestIndexerRedisQueue(TestCase):
         q_srv_meta._client.set(q_srv_meta._key_addedcount, 0)
         q_srv_meta._client.set(q_srv_meta._key_successescount, 0)
         q_srv_meta._client.set(q_srv_meta._key_addedcount, 0)
+        self.indexer.queue_worker.uuid_cnt = 0
+        self.indexer.queue_worker.get_cnt = 0
+        self.indexer.queue_worker.is_running = False
 
     def test_init(self):
         """Test Indexer Init"""
