@@ -23,7 +23,7 @@ class BaseQueueClient(object):
         pass
 
     # pylint: disable=no-self-use, unused-argument
-    def get_queue(self, queue_name, queue_type, is_worker=False):
+    def get_queue(self, queue_name, queue_type, is_worker=False, remote_worker=False):
         '''Create a Queue'''
         if queue_type == BASE_QUEUE_TYPE:
             return BaseQueue(queue_name)
@@ -50,6 +50,12 @@ class BaseQueueMeta(object):
         self._success_count = 0
         self._worker_conns = {}
         self._worker_results = {}
+        # Back added from redis
+        self._indx_vars_set = False
+        self._len_uuids = 0
+        self._xmin = None
+        self._snapshot_id = None
+        self._restart = False
 
     def get_server_restarts(self):  # pylint: disable=no-self-use
         '''
@@ -254,6 +260,20 @@ class BaseQueue(object):
         return bytes_added, failed_uuids
 
     # Run
+    def set_indexing_vars(self, *args):
+        '''set needed vars at start of indexing'''
+        self._indx_vars_set = True
+        (self._len_uuids, self._xmin,
+                self._snapshot_id, self._restart) = args
+
+    def unset_indexing_vars(self):
+        '''UNset needed vars at start of indexing'''
+        self._indx_vars_set = False
+        self._len_uuids = 0
+        self._xmin = None
+        self._snapshot_id = None
+        self._restart = False
+
     def update_finished(self, given_worker_id, given_results):
         """Update queue and queue meta for finished work"""
         msg = 'Worker id(%s) DNE.' % given_worker_id

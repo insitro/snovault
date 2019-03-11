@@ -42,6 +42,7 @@ es_logger.setLevel(logging.ERROR)
 log = logging.getLogger('snovault.elasticsearch.es_index_listener')
 MAX_CLAUSES_FOR_ES = 8192
 DEFAULT_QUEUE = 'Simple'
+SHORT_UUIDS_TO = None
 
 
 def _update_for_uuid_queues(registry):
@@ -63,16 +64,20 @@ def _update_for_uuid_queues(registry):
 def includeme(config):
     """Add index listener endpoint and setup Indexer"""
     config.add_route('index', '/index')
+    config.add_route('index_worker', '/index_worker')
     config.scan(__name__)
     registry = config.registry
-    processes = registry.settings.get('indexer.processes')
     is_indexer = registry.settings.get('indexer')
-    if is_indexer:
+    is_indexer_worker = registry.settings.get('indexer_worker')
+    processes = registry.settings.get('queue_worker_processes')
+    if is_indexer or is_indexer_worker:
         available_queues = [DEFAULT_QUEUE]
         registry['available_queues'] = available_queues
         _update_for_uuid_queues(registry)
-        if not processes:
+        if processes in [1, '1', None]:
+            print('creating single indexer with process', processes)
             registry[INDEXER] = Indexer(registry)
+
 
 def get_related_uuids(request, es, updated, renamed):
     '''Returns (set of uuids, False) or (list of all uuids, True) if full reindex triggered'''
@@ -140,6 +145,53 @@ def get_related_uuids(request, es, updated, renamed):
 
     return (related_set, False)
 
+
+@view_config(route_name='index_worker', request_method='POST', permission="index")
+def index_worker(request):
+    '''Run Worker, server must be started'''
+    worker_indexer = request.registry.get(INDEXER)
+    queue_type = request.registry.settings.get('queue_type')
+    xmin = None
+    snapshot_id = None
+    restart = False
+    status_code = 0
+    status_msgs = [
+        'Not initalized',
+        'Initialized',
+        'Server vars set',
+        'Worker not running(is good)',
+        'Wroker ran:',
+    ]
+    if worker_indexer and worker_indexer.queue_server and worker_indexer.queue_worker:
+        status_code += 1
+        (queue_name, indx_vars_set, len_uuid, xmin,
+            snapshot_id, restart) = worker_indexer.queue_server.refresh_queue()
+        print(
+            'worker refresh queue',
+            worker_indexer.queue_worker.worker_id,
+            queue_name,
+            indx_vars_set,
+            len_uuid,
+            xmin, snapshot_id
+        )
+        worker_indexer.queue_worker.update_queue_name(queue_name)
+        if False and indx_vars_set:
+            status_code += 1
+            if not worker_indexer.queue_worker.is_running:
+                status_code += 1
+                uuids_ran = worker_indexer.run_worker(
+                    request, xmin, snapshot_id, restart
+                )
+                print(worker_indexer.queue_worker.worker_id, 'worker ran', uuids_ran)
+                if uuids_ran:
+                    status_code += 1
+                    status_msgs[status_code] += str(uuids_ran)
+                    worker_indexer.worker_runs.append({
+                        'worker_id':worker_indexer.queue_worker.worker_id,
+                        'uuids': uuids_ran,
+                    })
+    # print('indexer_worker listener', status_msgs[status_code], queue_type)
+    return {}
 
 
 @view_config(route_name='index', request_method='POST', permission="index")
@@ -259,6 +311,8 @@ def index(request):
                     snapshot_id = connection.execute('SELECT pg_export_snapshot();').scalar()
 
     if invalidated and not dry_run:
+        if SHORT_UUIDS_TO and SHORT_UUIDS_TO > 0:
+            invalidated = indexer.short_uuids(invalidated, SHORT_UUIDS_TO)
         if len(stage_for_followup) > 0:
             # Note: undones should be added before, because those uuids will (hopefully) be indexed in this cycle
             state.prep_for_followup(xmin, invalidated)
@@ -342,8 +396,21 @@ class Indexer(object):
         self.chunk_size = None
         self.batch_size = None
         self.worker_runs = []
-        if registry.settings.get('indexer'):
+        if (
+            registry.settings.get('indexer') or
+            registry.settings.get('indexer_worker')
+        ):
             self._setup_queues(registry)
+
+    @staticmethod
+    def short_uuids(uuids, short_to=1000):
+        '''Debugging function to limit indexable uuids'''
+        new_uuids = []
+        for uuid in uuids:
+            if len(new_uuids) > short_to:
+                break
+            new_uuids.append(uuid)
+        return new_uuids
 
     def _setup_queues(self, registry):
         '''Init helper - Setup server and worker queues'''
@@ -353,7 +420,7 @@ class Indexer(object):
         queue_options = self._get_queue_options(registry)
         self.chunk_size = queue_options['chunk_size']
         self.batch_size = queue_options['batch_size']
-        if is_queue_server:
+        if is_queue_server or is_queue_worker:
             cp_q_ops = queue_options.copy()
             cp_q_ops['batch_size'] = cp_q_ops['get_size']
             self.queue_server_backup = SimpleUuidServer(cp_q_ops)
@@ -366,26 +433,31 @@ class Indexer(object):
                 self.queue_server = self.queue_server_backup
                 self.queue_server_backup = None
             elif 'UuidQueue' in registry:
+                remote_worker = False
+                if is_queue_worker and not is_queue_server:
+                    remote_worker = True
+                    self.queue_server_backup = None
                 try:
                     queue_options['uuid_len'] = 36
                     self.queue_server = registry['UuidQueue'](
                         queue_options['queue_name'],
                         queue_type,
                         queue_options,
+                        remote_worker=remote_worker,
                     )
                 except Exception as exp:  # pylint: disable=broad-except
                     log.warning(repr(exp))
                     log.warning(
                         'Failed to initialize UuidQueue. Switching to backup.'
                     )
-                    self._serve_object_switch_queue()
+                    if not remote_worker:
+                        self._serve_object_switch_queue()
                 else:
                     self.queue_type = queue_type
             else:
                 log.error('No queue available for Indexer')
             if self.queue_server and is_queue_worker:
                 self.queue_worker = self.queue_server.get_worker()
-            log.warning('Primary indexer queue type: %s', self.queue_type)
 
     @staticmethod
     def _get_queue_options(registry):
@@ -428,9 +500,14 @@ class Indexer(object):
         self.queue_type = DEFAULT_QUEUE
         if set_worker:
             self.queue_worker = self.queue_server.get_worker()
-    
 
-    def _serve_objects_init(self, uuids):
+    def _serve_objects_init(
+        self,
+        uuids,
+        xmin,
+        snapshot_id,
+        restart,
+    ):
         err_msg = 'Cannot initialize indexing process: '
         try:
             is_indexing = self.queue_server.is_indexing()
@@ -445,28 +522,34 @@ class Indexer(object):
                 self._serve_object_switch_queue(set_worker=True)
             else:
                 return err_msg + 'Cannot failover to simple queue'
+        self.queue_server.set_indexing_vars(
+            len(uuids),
+            xmin,
+            snapshot_id,
+            restart,
+        )
         return None
 
     def _serve_objects_load_uuids(self, uuids):
         err_msg = None
-        try:
-            uuids_loaded_len = self.queue_server.load_uuids(uuids)
-            if not uuids_loaded_len:
-                err_msg = 'Uuids given to Indexer.serve_objects failed to load'
-            elif uuids_loaded_len != len(uuids):
-                err_msg = (
-                    'Uuids given to Indexer.serve_objects '
-                    'failed to all load. {} of {} only'.format(
-                        uuids_loaded_len,
-                        len(uuids),
-                    )
+        # try:
+        uuids_loaded_len = self.queue_server.load_uuids(uuids)
+        if not uuids_loaded_len:
+            err_msg = 'Uuids given to Indexer.serve_objects failed to load'
+        elif uuids_loaded_len != len(uuids):
+            err_msg = (
+                'Uuids given to Indexer.serve_objects '
+                'failed to all load. {} of {} only'.format(
+                    uuids_loaded_len,
+                    len(uuids),
                 )
-        except Exception as exp:  # pylint: disable=broad-except
-            log.warning(repr(exp))
-            err_msg = 'Indexer load uuids failed.'
-            if self.queue_server_backup:
-                log.warning('uuid load issue:  Switching to simple server')
-                self._serve_object_switch_queue(set_worker=True)
+            )
+        # except Exception as exp:  # pylint: disable=broad-except
+        #     log.warning(repr(exp))
+        #     err_msg = 'Indexer load uuids failed.'
+        #     if self.queue_server_backup:
+        #         log.warning('uuid load issue:  Switching to simple server')
+        #         self._serve_object_switch_queue(set_worker=True)
         return err_msg
 
     def serve_objects(
@@ -480,8 +563,14 @@ class Indexer(object):
         ):
         '''Run indexing process with queue server and optional worker'''
         # pylint: disable=too-many-arguments
+        log.warning('Primary indexer queue type: %s', self.queue_type)
         errors = []
-        err_msg = self._serve_objects_init(uuids)
+        err_msg = self._serve_objects_init(
+            uuids,
+            xmin,
+            snapshot_id,
+            restart,
+        )
         if err_msg:
             return errors, err_msg
         err_msg = self._serve_objects_load_uuids(uuids)
@@ -490,7 +579,19 @@ class Indexer(object):
         # Run Process Loop
         start_time = time.time()
         self.worker_runs = []
+        serve_msg = '{} is serving {} uuids with ({}, {})'.format(
+            self.queue_server.queue_name,
+            len(uuids),
+            xmin,
+            snapshot_id
+        )
+        print_interval = 60
+        last_print_time = 0
         while self.queue_server.is_indexing(errs_cnt=len(errors)):
+            age = time.time() - last_print_time
+            if age >= print_interval:
+                last_print_time = time.time()
+                print(serve_msg)
             if self.queue_worker and not self.queue_worker.is_running:
                 # Server Worker
                 uuids_ran = self.run_worker(
@@ -539,7 +640,7 @@ class Indexer(object):
             self.queue_worker.is_running = False
             return len(batch_uuids)
         else:
-            log.warning('No uudis to run %d', self.queue_worker.get_cnt)
+            log.warning('No uuids to run %d', self.queue_worker.get_cnt)
         return None
 
     def update_objects(

@@ -94,7 +94,8 @@ class IndexerState(object):
         elif self.is_reindexing:
             log.info('%s is reindexing', self.title)
         elif self.is_initial_indexing:
-            log.info('%s is initially indexing', self.title)
+            # log.info('%s is initially indexing', self.title)
+            pass
 
     # Private-ish primitives...
     def get_obj(self, id, doc_type='meta'):

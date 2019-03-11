@@ -15,6 +15,13 @@ REDIS_SET = 'REDIS_SET'
 REDIS_SET_PIPE = 'REDIS_SET_PIPE'
 REDIS_SET_PIPE_EXEC = 'REDIS_SET_PIPE_EXEC'
 PD_RESTARTS = 'pd:srvrs'
+PD_LAST_QUEUE_NAME = 'pd:lastqname'
+PD_INDX_VARS_SET = 'pd:indxvarsset'
+PD_LEN_UUIDS = 'pd:uuidlen'
+PD_XMIN = 'pd:xmin'
+PD_SNAPSHOT_ID = 'pd:snpshtid'
+PD_RESTART = 'pd:restart'
+
 
 # TODo: has_uuids failed becuase set_args was never called on init.  Tests did not catch this
 # TODo: new/updated so check tests: _get_worker_ids, get_worker_conn_count
@@ -34,7 +41,7 @@ class RedisClient(StrictRedis):
             socket_timeout=5,
         )
 
-    def get_queue(self, queue_name, queue_type, is_worker=False):
+    def get_queue(self, queue_name, queue_type, is_worker=False, remote_worker=False):
         '''Return the queue by queue_type'''
         if queue_type == REDIS_LIST:
             queue_class = RedisListQueue
@@ -48,7 +55,7 @@ class RedisClient(StrictRedis):
             queue_class = RedisSetPipeExecQueue
         else:
             raise ValueError('Queue %s is not available' % queue_type)
-        return queue_class(queue_name, self, is_worker=is_worker)
+        return queue_class(queue_name, self, is_worker=is_worker, remote_worker=remote_worker)
 
 
 class RedisQueueMeta(BaseQueueMeta):
@@ -58,23 +65,73 @@ class RedisQueueMeta(BaseQueueMeta):
 
     - Server and client(workers) use meta store in redis
     '''
-    def __init__(self, queue_name, client, is_worker=False):
+    def __init__(self, queue_name, client, is_worker=False, remote_worker=False):
         self._base_id = int(time.time() * 1000000)
         self._client = client
-        if not is_worker:
+        if not is_worker and not remote_worker:
             restarts = self.get_server_restarts()
             self.queue_name = queue_name + str(restarts)
             self._setup_redis_keys()
             self.set_args(kill_workers=True)
             self._init_persistant_data()
+        elif remote_worker:
+            self.queue_name = queue_name
+            self._setup_redis_keys()
         else:
             self.queue_name = queue_name
             self._setup_redis_keys()
 
     # Persistant Server Data
+    def get_indexing_vars(self):
+        '''get needed vars at start of indexing'''
+        indx_vars_set = False if int(self._client.get(PD_INDX_VARS_SET)) else True
+        len_uuid = int(self._client.get(PD_LEN_UUIDS))
+        xmin = self._client.get(PD_XMIN)
+        if xmin == 'x':
+            xmin = None
+        else:
+            xmin = int(xmin)
+        snapshot_id = self._client.get(PD_SNAPSHOT_ID)
+        if snapshot_id == 'x':
+            snapshot_id = None
+        restart = False if self._client.get(PD_RESTART) else True
+        return (indx_vars_set, len_uuid, xmin, snapshot_id, restart)
+
+    def set_indexing_vars(self, len_uuids, xmin, snapshot_id, restart):
+        '''set needed vars at start of indexing'''
+        if xmin is None:
+            xmin = 'x'
+        if snapshot_id is None:
+            snapshot_id = 'x'
+        if restart:
+            restart = 0
+        else:
+            restart = 1
+        self._client.set(PD_INDX_VARS_SET, 0)
+        self._client.set(PD_LEN_UUIDS, len_uuids)
+        self._client.set(PD_XMIN, xmin)
+        self._client.set(PD_SNAPSHOT_ID, snapshot_id)
+        self._client.set(PD_RESTART, restart)
+
+    def unset_indexing_vars(self):
+        '''UNset needed vars at start of indexing'''
+        self._client.set(PD_INDX_VARS_SET, 1)
+        self._client.set(PD_LEN_UUIDS, 0)
+        self._client.set(PD_XMIN, 'x')
+        self._client.set(PD_SNAPSHOT_ID, 'x')
+        self._client.set(PD_RESTART, 1)
+
     def _init_persistant_data(self):
-        # persistant data : server restarts
+        self._client.set(PD_LAST_QUEUE_NAME, self.queue_name)
         self._client.incrby(PD_RESTARTS, 1)
+        self.unset_indexing_vars()
+
+    def get_last_queue_name(self):
+        '''Last queue name'''
+        return self._client.get(PD_LAST_QUEUE_NAME)
+
+    def set_queue_name(self):
+        return self._client.set(PD_LAST_QUEUE_NAME, )
 
     def get_server_restarts(self):
         '''
@@ -134,11 +191,13 @@ class RedisQueueMeta(BaseQueueMeta):
         """Add worker connection"""
         self._client.lpush(self._key_workers, worker_id)
         worker_conn_key = self._key_worker_conn + ':' + worker_id
-        self._client.hmset(worker_conn_key, BaseQueueMeta._get_blank_worker())
+        blank_worker = BaseQueueMeta._get_blank_worker()
+        self._client.hmset(worker_conn_key, blank_worker)
 
     def _get_worker_conn(self, worker_id):
         worker_conn_key = self._key_worker_conn + ':' + worker_id
-        return self._client.hgetall(worker_conn_key)
+        wrk_hash = self._client.hgetall(worker_conn_key)
+        return wrk_hash
 
     def _get_worker_ids(self):
         """Get list of worker ids"""
@@ -182,6 +241,21 @@ class RedisQueueMeta(BaseQueueMeta):
             worker_conn_key = self._key_worker_conn + ':' + worker_id
             self._client.hmset(worker_conn_key, worker_conn)
 
+    # Worker Run
+    def refresh(self):
+        '''Refresh queue info with latest remote server'''
+        self.queue_name = self.get_last_queue_name()
+        self._setup_redis_keys()
+        (indx_vars_set, len_uuids, xmin,
+            snapshot_id, restart) = self.get_indexing_vars()
+        return (self.queue_name, indx_vars_set, len_uuids, xmin,
+            snapshot_id, restart)
+
+    def update_queue_name(self, queue_name):
+        '''update queue name for worker'''
+        self.queue_name = queue_name
+        self._setup_redis_keys()
+
     # Uuids
     def get_uuid_count(self):
         """
@@ -223,7 +297,7 @@ class RedisQueueMeta(BaseQueueMeta):
     # Run Args
     def _setup_redis_keys(self):
         """
-        Create redis keys and base keys
+        Create redis keys and base keys in the object not the database
 
         mb(metabase)-Base key for storing values
         ra(runargs, hash?)-Queue needs to store run args for remote workers
@@ -253,9 +327,10 @@ class RedisQueueMeta(BaseQueueMeta):
         self._key_errorscount = self._key_metabase + ':ce'
         self._key_successescount = self._key_metabase + ':cs'
         # Worker Connections
-        self._key_workers = self._key_metabase + ':wi'
-        self._key_worker_conn = self._key_metabase + ':wk'
-        self._key_worker_results = self._key_metabase + ':wr'
+        worker_base = 'worker'
+        self._key_workers = worker_base + ':wi'
+        self._key_worker_conn = worker_base + ':wk'
+        self._key_worker_results = worker_base + ':wr'
 
     def set_args(self, kill_workers=False):
         """Initialize indexing run args"""
@@ -311,12 +386,13 @@ class RedisQueue(BaseQueue):
     max_value_size = 262144  # Arbitraitly set to AWS SQS Limit
     queue_type = None
 
-    def __init__(self, queue_name, client, is_worker=False):
+    def __init__(self, queue_name, client, is_worker=False, remote_worker=False):
         self._client = client
         self._qmeta = RedisQueueMeta(
             queue_name,
             self._client,
-            is_worker=is_worker
+            is_worker=is_worker,
+            remote_worker=remote_worker,
         )
         self.queue_name = self._qmeta.queue_name
 
@@ -350,9 +426,29 @@ class RedisQueue(BaseQueue):
         return False
 
     # Run
+    def set_indexing_vars(self, *args):
+        '''set needed vars at start of indexing'''
+        self._qmeta.set_indexing_vars(*args)
+
+    def unset_indexing_vars(self):
+        '''UNset needed vars at start of indexing'''
+        self._qmeta.unset_indexing_vars()
+
     def close_indexing(self):
         '''Close indexing sessions'''
         self._qmeta.set_args()
+
+    # Worker Run
+    def refresh(self):
+        '''Refresh queue info with latest remote server'''
+        return_val = self._qmeta.refresh()
+        self.queue_name = self._qmeta.queue_name
+        return return_val
+
+    def update_queue_name(self, queue_name):
+        '''update queue name for worker'''
+        self.queue_name = queue_name
+        self._qmeta.update_queue_name(queue_name)
 
 
 class RedisPipeQueue(RedisQueue):

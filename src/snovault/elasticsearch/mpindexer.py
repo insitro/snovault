@@ -26,14 +26,18 @@ log = logging.getLogger('snovault.elasticsearch.es_index_listener')
 
 
 def includeme(config):
-    if config.registry.settings.get('indexer_worker'):
-        return
-    processes = config.registry.settings.get('indexer.processes')
+    registry = config.registry
+    is_indexer = registry.settings.get('indexer')
+    is_indexer_worker = registry.settings.get('indexer_worker')
+    processes = registry.settings.get('queue_worker_processes')
+    if is_indexer_worker:
+        processes = registry.settings.get('queue_worker_processes')
     try:
         processes = int(processes)
     except:
         processes = None
-    if INDEXER not in config.registry:
+    if INDEXER not in config.registry and (is_indexer or is_indexer_worker):
+        print('creating mp indexer with process', processes)
         config.registry[INDEXER] = MPIndexer(config.registry, processes=processes)
 
 
@@ -185,7 +189,7 @@ class MPIndexer(Indexer):
                 if error is not None:
                     print('Error', error)
                     errors.append(error)
-                if (i + 1) % 1000 == 0:
+                if (i + 1) % 100000 == 0:
                     log.info('Indexing %d', i + 1)
         except:
             self.shutdown()

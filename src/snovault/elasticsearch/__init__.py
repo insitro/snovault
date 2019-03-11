@@ -37,7 +37,11 @@ def includeme(config):
 
     config.include('.indexer')
     config.include('.indexer_state')
-    if asbool(settings.get('indexer')) and not PY2:
+    is_an_indexer = any([
+        asbool(settings.get('indexer')),
+        asbool(settings.get('indexer_worker')),
+    ])
+    if is_an_indexer and not PY2:
         config.include('.mpindexer')
 
 

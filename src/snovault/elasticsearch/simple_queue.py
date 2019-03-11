@@ -4,11 +4,13 @@ Simple uuid queue for indexing process
 the proper functions used in the indexer classes.
 '''
 import time
+import copy
 
 
 class SimpleUuidServer(object):    #pylint: disable=too-many-instance-attributes
     '''Simple uuid queue as a list'''
     def __init__(self, queue_options):
+        self.queue_name = queue_options['queue_name']
         self._queue_options = queue_options
         self._start_us = int(time.time() * 1000000)
         self.queue_id = str(self._start_us)
@@ -17,6 +19,12 @@ class SimpleUuidServer(object):    #pylint: disable=too-many-instance-attributes
         self._worker_conns = {}
         self._worker_results = {}
         self._errors = []
+        # Back added from redis
+        self._indx_vars_set = False
+        self._len_uuids = 0
+        self._xmin = None
+        self._snapshot_id = None
+        self._restart = False
 
     # Errors
     def add_errors(self, worker_id, errors):
@@ -36,7 +44,7 @@ class SimpleUuidServer(object):    #pylint: disable=too-many-instance-attributes
 
     def pop_errors(self):
         """Get and remove errors, they are expected to be handled after this"""
-        errors = self._errors.copy()
+        errors = list(self._errors)
         self._errors = []
         return errors
 
@@ -137,6 +145,12 @@ class SimpleUuidServer(object):    #pylint: disable=too-many-instance-attributes
         return len(self._uuids)
 
     # Run
+    def set_indexing_vars(self, *args):
+        '''set needed vars at start of indexing'''
+        self._indx_vars_set = True
+        (self._len_uuids, self._xmin,
+            self._snapshot_id, self._restart) = args
+
     def is_indexing(self, errs_cnt=0):  # pylint: disable=unused-argument
         '''Is an indexing process currently running'''
         if self.has_uuids(errs_cnt=errs_cnt) or self._has_errors():

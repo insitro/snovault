@@ -94,15 +94,15 @@ class QueueAdapter(object):
     """
     Indexer to Queue Adapter / Manager
     """
-    def __init__(self, queue_name, queue_type, queue_options):
+    def __init__(self, queue_name, queue_type, queue_options, remote_worker=False):
         self._queue_type = queue_type
         self._queue_options = queue_options
         self._start_us = int(time.time() * 1000000)
         self.queue_id = str(self._start_us)
-        self._queue = self._get_queue(queue_name)
+        self.remote_worker = remote_worker
+        self._queue = self._get_queue(queue_name, remote_worker=remote_worker)
         if self._queue:
-            self._queue_name = self._queue.queue_name
-
+            self.queue_name = self._queue.queue_name
 
     # Errors
     def _has_errors(self):
@@ -126,7 +126,7 @@ class QueueAdapter(object):
             # server and worker queue point to same obj
             worker_queue = self._queue
         else:
-            worker_queue = self._get_queue(self._queue_name, is_worker=True)
+            worker_queue = self._get_queue(self.queue_name, is_worker=True)
         return worker_queue
 
     def get_worker(self):
@@ -136,7 +136,7 @@ class QueueAdapter(object):
         self._queue.add_worker_conn(worker_id)
         worker_queue = self._get_worker_queue()
         return WorkerAdapter(
-            self._queue_name,
+            self.queue_name,
             self._queue_options,
             worker_id,
             worker_queue,
@@ -197,18 +197,29 @@ class QueueAdapter(object):
         return success_cnt
 
     # Run
+    def set_indexing_vars(self, *args):
+        '''set needed vars at start of indexing'''
+        self._queue.set_indexing_vars(*args)
+
     def is_indexing(self, errs_cnt=0):
         '''Is an indexing process currently running'''
         if self.has_uuids(errs_cnt=errs_cnt) or self._has_errors():
             return True
         worker_conns = self._queue.get_worker_conns()
-        for worker_conn in worker_conns.values():
+        for worker_id, worker_conn in worker_conns.items():
             if int(worker_conn['uuid_cnt']):
                 return True
         return False
 
+    # Worker Run
+    def refresh_queue(self):
+        '''Updates the worker server with lastest queue'''
+        return_val = self._queue.refresh()
+        self.queue_name = self._queue.queue_name
+        return return_val
+
     # Queue Client
-    def _get_queue(self, queue_name, is_worker=False):
+    def _get_queue(self, queue_name, is_worker=False, remote_worker=False):
         client_class = QueueTypes.get_queue_client_class(self._queue_type)
         if client_class:
             client = client_class(self._queue_options)
@@ -216,6 +227,7 @@ class QueueAdapter(object):
                 queue_name,
                 self._queue_type,
                 is_worker=is_worker,
+                remote_worker=remote_worker,
             )
         return None
 
@@ -232,7 +244,7 @@ class WorkerAdapter(object):
     the queue arg in init should be the same object as the server
     '''
     def __init__(self, queue_name, queue_options, worker_id, queue):
-        self._queue_name = queue_name
+        self.queue_name = queue_name
         self._queue_options = queue_options
         self.worker_id = worker_id
         self._queue = queue
@@ -297,6 +309,12 @@ class WorkerAdapter(object):
         if msg == 'Okay':
             self.uuid_cnt = 0
             msg = None
+            self._queue.unset_indexing_vars()
         else:
             msg = 'Update finished could not reset worker: %s' % msg
         return msg
+
+    # Run Worker
+    def update_queue_name(self, queue_name):
+        self.queue_name = queue_name
+        self._queue.update_queue_name(queue_name)
