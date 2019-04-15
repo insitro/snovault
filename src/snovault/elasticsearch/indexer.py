@@ -420,6 +420,7 @@ class Indexer(object):
         queue_options = self._get_queue_options(registry)
         self.chunk_size = queue_options['chunk_size']
         self.batch_size = queue_options['batch_size']
+        print(is_queue_server, is_queue_worker)
         if is_queue_server or is_queue_worker:
             cp_q_ops = queue_options.copy()
             cp_q_ops['batch_size'] = cp_q_ops['get_size']
