@@ -139,6 +139,7 @@ class MPIndexer(Indexer):
     maxtasks = 1  # pooled processes will exit and be replaced after this many tasks are completed.
 
     def __init__(self, registry, processes=None):
+        print('init mp indeer')
         super(MPIndexer, self).__init__(registry)
         self.initargs = (registry[APP_FACTORY], registry.settings,)
 
