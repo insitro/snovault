@@ -389,6 +389,7 @@ class RedisQueue(BaseQueue):
 
     def __init__(self, queue_name, client, is_worker=False, remote_worker=False):
         self._client = client
+        print('init redis queue')
         self._qmeta = RedisQueueMeta(
             queue_name,
             self._client,
