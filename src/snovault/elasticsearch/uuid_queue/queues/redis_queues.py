@@ -125,7 +125,7 @@ class RedisQueueMeta(BaseQueueMeta):
     def _init_persistant_data(self):
         print('_init_persistant_data')
         self._client.set(PD_LAST_QUEUE_NAME, self.queue_name)
-        self._client.incrby(PD_RESTARTS, 1)
+        self._client.incr(PD_RESTARTS)
         self.unset_indexing_vars()
 
     def get_last_queue_name(self):
