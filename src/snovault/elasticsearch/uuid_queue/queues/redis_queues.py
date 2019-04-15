@@ -68,7 +68,6 @@ class RedisQueueMeta(BaseQueueMeta):
     def __init__(self, queue_name, client, is_worker=False, remote_worker=False):
         self._base_id = int(time.time() * 1000000)
         self._client = client
-        print('ini redis queue meta', is_worker, remote_worker)
         if not is_worker and not remote_worker:
             restarts = self.get_server_restarts()
             self.queue_name = queue_name + str(restarts)
@@ -123,9 +122,8 @@ class RedisQueueMeta(BaseQueueMeta):
         self._client.set(PD_RESTART, 1)
 
     def _init_persistant_data(self):
-        print('_init_persistant_data')
         self._client.set(PD_LAST_QUEUE_NAME, self.queue_name)
-        # self._client.incr(PD_RESTARTS)
+        self._client.incr(PD_RESTARTS)
         self.unset_indexing_vars()
 
     def get_last_queue_name(self):
@@ -390,7 +388,6 @@ class RedisQueue(BaseQueue):
 
     def __init__(self, queue_name, client, is_worker=False, remote_worker=False):
         self._client = client
-        print('init redis queue')
         self._qmeta = RedisQueueMeta(
             queue_name,
             self._client,

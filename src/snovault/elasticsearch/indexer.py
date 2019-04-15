@@ -387,7 +387,6 @@ def get_current_xmin(request):
 
 class Indexer(object):
     def __init__(self, registry):
-        print('init indeer')
         self.es = registry[ELASTIC_SEARCH]
         self.esstorage = registry[STORAGE]
         self.index = registry.settings['snovault.elasticsearch.index']
@@ -401,7 +400,6 @@ class Indexer(object):
             registry.settings.get('indexer') or
             registry.settings.get('indexer_worker')
         ):
-            print('set up queues')
             self._setup_queues(registry)
 
     @staticmethod
@@ -422,7 +420,6 @@ class Indexer(object):
         queue_options = self._get_queue_options(registry)
         self.chunk_size = queue_options['chunk_size']
         self.batch_size = queue_options['batch_size']
-        print(is_queue_server, is_queue_worker)
         if is_queue_server or is_queue_worker:
             cp_q_ops = queue_options.copy()
             cp_q_ops['batch_size'] = cp_q_ops['get_size']
