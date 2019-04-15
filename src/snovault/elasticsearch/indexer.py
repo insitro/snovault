@@ -175,7 +175,7 @@ def index_worker(request):
             xmin, snapshot_id
         )
         worker_indexer.queue_worker.update_queue_name(queue_name)
-        if False and indx_vars_set:
+        if indx_vars_set:
             status_code += 1
             if not worker_indexer.queue_worker.is_running:
                 status_code += 1
