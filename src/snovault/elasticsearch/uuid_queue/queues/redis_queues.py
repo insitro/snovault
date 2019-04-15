@@ -68,6 +68,7 @@ class RedisQueueMeta(BaseQueueMeta):
     def __init__(self, queue_name, client, is_worker=False, remote_worker=False):
         self._base_id = int(time.time() * 1000000)
         self._client = client
+        print('ini redis queue meta', is_worker, remote_worker)
         if not is_worker and not remote_worker:
             restarts = self.get_server_restarts()
             self.queue_name = queue_name + str(restarts)

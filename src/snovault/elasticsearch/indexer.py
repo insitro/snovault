@@ -589,6 +589,7 @@ class Indexer(object):
         last_print_time = 0
         while self.queue_server.is_indexing(errs_cnt=len(errors)):
             age = time.time() - last_print_time
+            print('queue server age', age, last_print_time)
             if age >= print_interval:
                 last_print_time = time.time()
                 print(serve_msg)
