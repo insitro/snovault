@@ -108,8 +108,9 @@ class RedisQueueMeta(BaseQueueMeta):
             restart = 0
         else:
             restart = 1
-        print('setting indexing vars')
-        self._client.set(PD_INDX_VARS_SET, 0)
+        r = self._client.set(PD_INDX_VARS_SET, 0)
+        print('setting indexing vars', r)
+        print(PD_INDX_VARS_SET, self._client.get(PD_INDX_VARS_SET))
         self._client.set(PD_LEN_UUIDS, len_uuids)
         self._client.set(PD_XMIN, xmin)
         self._client.set(PD_SNAPSHOT_ID, snapshot_id)
