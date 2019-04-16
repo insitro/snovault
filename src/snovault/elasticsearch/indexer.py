@@ -42,7 +42,7 @@ es_logger.setLevel(logging.ERROR)
 log = logging.getLogger('snovault.elasticsearch.es_index_listener')
 MAX_CLAUSES_FOR_ES = 8192
 DEFAULT_QUEUE = 'Simple'
-SHORT_UUIDS_TO = 1000
+SHORT_UUIDS_TO = 100000
 
 
 def _update_for_uuid_queues(registry):
