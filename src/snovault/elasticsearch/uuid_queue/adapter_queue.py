@@ -208,6 +208,7 @@ class QueueAdapter(object):
             return True
         worker_conns = self._queue.get_worker_conns()
         for worker_id, worker_conn in worker_conns.items():
+            print(worker_id, worker_conn)
             if int(worker_conn['uuid_cnt']):
                 return True
         return False
