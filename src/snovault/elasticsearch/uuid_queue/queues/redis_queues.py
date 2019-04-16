@@ -99,6 +99,7 @@ class RedisQueueMeta(BaseQueueMeta):
 
     def set_indexing_vars(self, len_uuids, xmin, snapshot_id, restart):
         '''set needed vars at start of indexing'''
+        print('set_indexing_vars')
         if xmin is None:
             xmin = 'x'
         if snapshot_id is None:
@@ -115,6 +116,7 @@ class RedisQueueMeta(BaseQueueMeta):
 
     def unset_indexing_vars(self):
         '''UNset needed vars at start of indexing'''
+        print('unset_indexing_vars')
         self._client.set(PD_INDX_VARS_SET, 1)
         self._client.set(PD_LEN_UUIDS, 0)
         self._client.set(PD_XMIN, 'x')
