@@ -209,7 +209,8 @@ class QueueAdapter(object):
         worker_conns = self._queue.get_worker_conns()
         for worker_id, worker_conn in worker_conns.items():
             print(worker_id, worker_conn)
-            if int(worker_conn['uuid_cnt']) or int(worker_conn['running']):
+            running = False if int(worker_conn['running']) else True 
+            if int(worker_conn['uuid_cnt']) or running:
                 return True
         return False
 
