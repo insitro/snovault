@@ -91,6 +91,7 @@ class BaseQueueMeta(object):
         return {
             'uuid_cnt': 0,
             'get_cnt': 0,
+            'running': 1,
         }
 
     def add_worker_conn(self, worker_id):
@@ -106,11 +107,15 @@ class BaseQueueMeta(object):
         """Return number of worker conns"""
         return len(self._worker_conns)
 
-    def update_worker_conn(self, worker_id, uuid_cnt, get_cnt):
+    def update_worker_conn(self, worker_id, uuid_cnt, run_flag):
         """Set worker conn info"""
         worker_conn = self._worker_conns[worker_id]
         worker_conn['uuid_cnt'] = uuid_cnt
         worker_conn['get_cnt'] = get_cnt
+        if run_flag:
+            worker_conn['running'] = 0
+        else:
+            worker_conn['running'] = 1
 
     def save_work_results(self, worker_id, results):
         """Save work results"""
