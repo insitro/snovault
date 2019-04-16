@@ -177,6 +177,7 @@ def index_worker(request):
         worker_indexer.queue_worker.update_queue_name(queue_name)
         if indx_vars_set:
             status_code += 1
+            print(worker_indexer.queue_worker.is_running)
             if not worker_indexer.queue_worker.is_running:
                 status_code += 1
                 uuids_ran = worker_indexer.run_worker(
