@@ -284,10 +284,12 @@ class BaseQueue(object):
                 uuid_cnt = int(worker_conn['uuid_cnt'])
                 uuid_cnt -= given_results['successes']
                 uuid_cnt -= errors_added
+                run_flag = False
                 self.update_worker_conn(
                     worker_id,
                     uuid_cnt,
                     worker_conn['get_cnt'],
+                    run_flag,
                 )
                 self.save_work_results(worker_id, given_results)
                 if uuid_cnt != 0:

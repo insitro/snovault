@@ -217,13 +217,16 @@ class RedisQueueMeta(BaseQueueMeta):
         """Return number of worker conns"""
         return self._client.llen(self._key_workers)
 
-    def update_worker_conn(self, worker_id, uuid_cnt, get_cnt):
+    def update_worker_conn(self, worker_id, uuid_cnt, get_cnt, run_flag):
         """Set worker conn info"""
         worker_conn_key = self._key_worker_conn + ':' + worker_id
         worker_conn = self._get_worker_conn(worker_id)
         if worker_conn:
             worker_conn['uuid_cnt'] = uuid_cnt
             worker_conn['get_cnt'] = get_cnt
+            worker_conn['running'] = 1
+            if run_flag:
+                worker_conn['running'] = 0
             self._client.hmset(worker_conn_key, worker_conn)
 
     def save_work_results(self, worker_id, results):

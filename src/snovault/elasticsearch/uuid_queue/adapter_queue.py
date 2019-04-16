@@ -208,8 +208,7 @@ class QueueAdapter(object):
             return True
         worker_conns = self._queue.get_worker_conns()
         for worker_id, worker_conn in worker_conns.items():
-            print(worker_id, worker_conn)
-            if int(worker_conn['uuid_cnt']):
+            if int(worker_conn['uuid_cnt']) or int(worker_conn['running']):
                 return True
         return False
 
@@ -283,6 +282,13 @@ class WorkerAdapter(object):
 
     def get_uuids(self, get_all=False):
         '''Get uuids and update queue meta data'''
+        run_flag=True
+        self._queue.update_worker_conn(
+            self.worker_id,
+            self.uuid_cnt,
+            self.get_cnt,
+            run_flag,
+        )
         self.get_cnt += 1
         uuids = []
         if self.uuid_cnt == 0:
@@ -295,10 +301,15 @@ class WorkerAdapter(object):
                 uuids = self._get_uuids()
             self.uuid_cnt = len(uuids)
             self._queue.update_uuid_count(-1 * self.uuid_cnt)
+        # Run flag needs to be wrapped around get uuids for a worker
+        # becuase the last worker will remove all uuids but the
+        # server needs to keep running until it finishes.
+        run_flag=True
         self._queue.update_worker_conn(
             self.worker_id,
             self.uuid_cnt,
             self.get_cnt,
+            run_flag,
         )
         return uuids
 
