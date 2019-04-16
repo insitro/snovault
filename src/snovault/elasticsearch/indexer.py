@@ -607,7 +607,6 @@ class Indexer(object):
             batch_errors = self.queue_server.pop_errors()
             for error in batch_errors:
                 errors.append(error)
-            print('errors', len(errors))
             if timeout and time.time() - start_time > timeout:
                 err_msg = 'Indexer sleep timeout'
                 break

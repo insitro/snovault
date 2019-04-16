@@ -203,12 +203,10 @@ class QueueAdapter(object):
 
     def is_indexing(self, errs_cnt=0):
         '''Is an indexing process currently running'''
-        print(self.has_uuids(errs_cnt=errs_cnt), errs_cnt, self._has_errors())
         if self.has_uuids(errs_cnt=errs_cnt) or self._has_errors():
             return True
         worker_conns = self._queue.get_worker_conns()
         for worker_id, worker_conn in worker_conns.items():
-            print(worker_id, worker_conn)
             running = False if int(worker_conn['running']) else True 
             if int(worker_conn['uuid_cnt']) or running:
                 return True
