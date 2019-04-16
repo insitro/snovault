@@ -85,7 +85,6 @@ class RedisQueueMeta(BaseQueueMeta):
     def get_indexing_vars(self):
         '''get needed vars at start of indexing'''
         indx_vars_set = False if int(self._client.get(PD_INDX_VARS_SET)) else True
-        print('getting indexing vars', self._client.get(PD_INDX_VARS_SET), indx_vars_set)
         len_uuid = int(self._client.get(PD_LEN_UUIDS))
         xmin = self._client.get(PD_XMIN)
         if xmin == 'x':
@@ -109,8 +108,6 @@ class RedisQueueMeta(BaseQueueMeta):
         else:
             restart = 1
         r = self._client.set(PD_INDX_VARS_SET, 0)
-        print('setting indexing vars', r)
-        print(PD_INDX_VARS_SET, self._client.get(PD_INDX_VARS_SET))
         self._client.set(PD_LEN_UUIDS, len_uuids)
         self._client.set(PD_XMIN, xmin)
         self._client.set(PD_SNAPSHOT_ID, snapshot_id)
@@ -440,6 +437,7 @@ class RedisQueue(BaseQueue):
     def close_indexing(self):
         '''Close indexing sessions'''
         self._qmeta.set_args()
+        self._qmeta.unset_indexing_vars()
 
     # Worker Run
     def refresh(self):
