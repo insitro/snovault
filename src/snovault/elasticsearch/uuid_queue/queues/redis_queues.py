@@ -85,6 +85,7 @@ class RedisQueueMeta(BaseQueueMeta):
     def get_indexing_vars(self):
         '''get needed vars at start of indexing'''
         indx_vars_set = False if int(self._client.get(PD_INDX_VARS_SET)) else True
+        print('getting indexing vars', self._client.get(PD_INDX_VARS_SET), indx_vars_set)
         len_uuid = int(self._client.get(PD_LEN_UUIDS))
         xmin = self._client.get(PD_XMIN)
         if xmin == 'x':
@@ -107,6 +108,7 @@ class RedisQueueMeta(BaseQueueMeta):
             restart = 0
         else:
             restart = 1
+        print('setting indexing vars')
         self._client.set(PD_INDX_VARS_SET, 0)
         self._client.set(PD_LEN_UUIDS, len_uuids)
         self._client.set(PD_XMIN, xmin)
