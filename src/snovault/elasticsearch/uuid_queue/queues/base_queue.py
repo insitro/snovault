@@ -107,7 +107,7 @@ class BaseQueueMeta(object):
         """Return number of worker conns"""
         return len(self._worker_conns)
 
-    def update_worker_conn(self, worker_id, uuid_cnt, run_flag):
+    def update_worker_conn(self, worker_id, uuid_cnt, get_cnt, run_flag):
         """Set worker conn info"""
         worker_conn = self._worker_conns[worker_id]
         worker_conn['uuid_cnt'] = uuid_cnt
