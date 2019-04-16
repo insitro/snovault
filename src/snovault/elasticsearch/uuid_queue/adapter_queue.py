@@ -309,7 +309,6 @@ class WorkerAdapter(object):
         if msg == 'Okay':
             self.uuid_cnt = 0
             msg = None
-            self._queue.unset_indexing_vars()
         else:
             msg = 'Update finished could not reset worker: %s' % msg
         return msg
