@@ -193,7 +193,7 @@ class BaseQueue(object):
         """Get queue meta workers count"""
         return self._qmeta.get_worker_conn_count()
 
-    def update_worker_conn(self, worker_id, uuid_cnt, get_cnt):
+    def update_worker_conn(self, worker_id, uuid_cnt, get_cnt, run_flag):
         """Update worker connection in queue meta"""
         self._qmeta.update_worker_conn(worker_id, uuid_cnt, get_cnt)
 
