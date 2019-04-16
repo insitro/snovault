@@ -195,7 +195,7 @@ class BaseQueue(object):
 
     def update_worker_conn(self, worker_id, uuid_cnt, get_cnt, run_flag):
         """Update worker connection in queue meta"""
-        self._qmeta.update_worker_conn(worker_id, uuid_cnt, get_cnt)
+        self._qmeta.update_worker_conn(worker_id, uuid_cnt, get_cnt, run_flag)
 
     def save_work_results(self, worker_id, results):
         """Save work results through queue meta"""
