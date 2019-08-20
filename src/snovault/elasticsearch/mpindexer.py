@@ -187,7 +187,9 @@ class MPIndexer(Indexer):
                     errors.append(error)
                 if (i + 1) % 1000 == 0:
                     log.info('Indexing %d', i + 1)
+            uuids = []
             for update_info in update_infos:
+                uuids.append(update_info['uuid'])
                 print('')
                 msg = "update_info {}: {}".format(
                     update_info['uuid'],
@@ -204,6 +206,11 @@ class MPIndexer(Indexer):
                     "%.6f" % (update_info['es_info']['run_time']),
                 )
                 print(msg)
+            print(
+                '[' +
+                ','.join(uuids) +
+                ']'
+            )
         except:
             self.shutdown()
             raise
