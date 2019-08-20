@@ -261,7 +261,7 @@ def index(request):
     if invalidated and not dry_run:
         invalid = []
         for uuid in invalidated:
-            if len(invalid) < 10000:
+            if len(invalid) < 1000:
                 invalid.append(uuid)
         invalidated = invalid
         if len(stage_for_followup) > 0:
@@ -433,7 +433,7 @@ class Indexer(object):
         self.queue_type = DEFAULT_QUEUE
         if set_worker:
             self.queue_worker = self.queue_server.get_worker()
-    
+
 
     def _serve_objects_init(self, uuids):
         err_msg = 'Cannot initialize indexing process: '
