@@ -187,10 +187,20 @@ class MPIndexer(Indexer):
                     errors.append(error)
                 if (i + 1) % 1000 == 0:
                     log.info('Indexing %d', i + 1)
-                    print('****')
-                    print("%.6f" % (update_info['start_time']))
-                    print("%.6f" % (update_info['end_time']))
-                    print("%.6f" % (update_info['run_time']))
+            for update_info in update_infos:
+                print('')
+                msg = "update_info {}: {}".format(
+                    update_info['uuid'],
+                    "%.6f" % (update_info['run_time']),
+                )
+                msg = "req_info    {}: {}".format(
+                    update_info['uuid'],
+                    "%.6f" % (update_info['req_info']['run_time']),
+                )
+                msg = "es_info     {}: {}".format(
+                    update_info['uuid'],
+                    "%.6f" % (update_info['es_info']['run_time']),
+                )
         except:
             self.shutdown()
             raise
