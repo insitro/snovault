@@ -189,7 +189,7 @@ class MPIndexer(Indexer):
                     log.info('Indexing %d', i + 1)
             uuids = []
             for update_info in update_infos:
-                uuids.append(update_info['uuid'])
+                uuids.append("'" + update_info['uuid'] + "'")
                 print('')
                 msg = "update_info {}: {}".format(
                     update_info['uuid'],
