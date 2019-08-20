@@ -311,7 +311,6 @@ def index(request):
             except ConflictError:
                 pass
         print('****serve over6')
-
     if first_txn is not None:
         result['txn_lag'] = str(datetime.datetime.now(pytz.utc) - first_txn)
     print('****serve over7')
