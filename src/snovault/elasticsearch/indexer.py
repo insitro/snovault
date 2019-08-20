@@ -279,17 +279,11 @@ def index(request):
             snapshot_id=snapshot_id,
             restart=restart,
         )
-        print('****serve over')
-        print('****serve over')
-        print('****serve over')
-        print('****serve over')
         if err_msg:
             log.warning('Could not start indexing: %s', err_msg)
         result = state.finish_cycle(result,errors)
-        print('****serve over2')
         if errors:
             result['errors'] = errors
-        print('****serve over3')
         if record:
             try:
                 es.index(index=INDEX, doc_type='meta', body=result, id='indexing')
@@ -302,21 +296,16 @@ def index(request):
                         log.error('Indexing error for {}, error message: {}'.format(item['uuid'], item['error_message']))
                         item['error_message'] = "Error occured during indexing, check the logs"
                 result['errors'] = error_messages
-        print('****serve over4')
         es.indices.refresh(RESOURCES_INDEX)
-        print('****serve over5')
         if False and flush:
             try:
                 es.indices.flush_synced(index=RESOURCES_INDEX)  # Faster recovery on ES restart
             except ConflictError:
                 pass
-        print('****serve over6')
 
     if first_txn is not None:
         result['txn_lag'] = str(datetime.datetime.now(pytz.utc) - first_txn)
-    print('****serve over7')
     state.send_notices()
-    print('****serve over8')
     return result
 
 
@@ -571,6 +560,10 @@ class Indexer(object):
                 errors.append(error)
             if (i + 1) % 1000 == 0:
                 log.info('Indexing %d', i + 1)
+                print('****')
+                print("%.6f" % (update_info['start_time']))
+                print("%.6f" % (update_info['end_time']))
+                print("%.6f" % (update_info['run_time']))
         return errors
 
     @staticmethod
