@@ -305,7 +305,7 @@ def index(request):
         print('****serve over4')
         es.indices.refresh(RESOURCES_INDEX)
         print('****serve over5')
-        if flush:
+        if False and flush:
             try:
                 es.indices.flush_synced(index=RESOURCES_INDEX)  # Faster recovery on ES restart
             except ConflictError:
