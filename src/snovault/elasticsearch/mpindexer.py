@@ -193,14 +193,17 @@ class MPIndexer(Indexer):
                     update_info['uuid'],
                     "%.6f" % (update_info['run_time']),
                 )
+                print(msg)
                 msg = "req_info    {}: {}".format(
                     update_info['uuid'],
                     "%.6f" % (update_info['req_info']['run_time']),
                 )
+                print(msg)
                 msg = "es_info     {}: {}".format(
                     update_info['uuid'],
                     "%.6f" % (update_info['es_info']['run_time']),
                 )
+                print(msg)
         except:
             self.shutdown()
             raise
