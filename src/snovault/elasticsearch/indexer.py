@@ -269,6 +269,7 @@ def index(request):
                 invalid.append(uuid)
         invalidated = invalid
         invalidated = copy.copy(pg93_uuids)
+        invalidated = ['2eb068c5-b7a6-48ec-aca2-c439e4dabb08']
         if len(stage_for_followup) > 0:
             # Note: undones should be added before, because those uuids will (hopefully) be indexed in this cycle
             state.prep_for_followup(xmin, invalidated)
