@@ -268,7 +268,7 @@ def index(request):
             if len(invalid) < 100:
                 invalid.append(uuid)
         invalidated = invalid
-        invalid = copy.copy(pg93_uuids)
+        invalidated = copy.copy(pg93_uuids)
         if len(stage_for_followup) > 0:
             # Note: undones should be added before, because those uuids will (hopefully) be indexed in this cycle
             state.prep_for_followup(xmin, invalidated)
