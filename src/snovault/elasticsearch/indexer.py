@@ -567,9 +567,9 @@ class Indexer(object):
             if (i + 1) % 1000 == 0:
                 log.info('Indexing %d', i + 1)
             print('Indexer: Post indexing result****')
-            print("%.6f" % (update_info['start_time']))
-            print("%.6f" % (update_info['end_time']))
-            print("%.6f" % (update_info['run_time']))
+            print("Run Time: %.6f" % (update_info['run_time']))
+            print("Req Time: %.6f" % (update_info['req_info']['run_time']))
+            print("Es  Time: %.6f" % (update_info['es_info']['run_time']))
         return errors
 
     @staticmethod
