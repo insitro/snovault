@@ -51,12 +51,12 @@ def embed(request, *elements, **kw):
     """
     # Should really be more careful about what gets included instead.
     # Cache cut response time from ~800ms to ~420ms.
-    print('embed.py:embed', 'start')
     start_time = time.time()
     embed_cache = request.registry[CONNECTION].embed_cache
     as_user = kw.get('as_user')
     path = join(*elements)
     path = unquote_bytes_to_wsgi(native_(path))
+    print('embed.py:embed', 'start', path)
     log.debug('embed: %s', path)
     if as_user is not None:
         result, embedded, linked = _embed(request, path, as_user)
@@ -69,12 +69,12 @@ def embed(request, *elements, **kw):
         result = quick_deepcopy(result)
     request._embedded_uuids.update(embedded)
     request._linked_uuids.update(linked)
-    print('embed.py:embed', 'end %0.6f' % (time.time() - start_time))
+    print('embed.py:embed', 'end', path, 'end %0.6f' % (time.time() - start_time))
     return result
 
 
 def _embed(request, path, as_user='EMBED'):
-    print('embed.py:_embed', 'start')
+    print('embed.py:_embed', 'start', path)
     start_time = time.time()
     subreq = make_subrequest(request, path)
     subreq.override_renderer = 'null_renderer'
@@ -83,10 +83,12 @@ def _embed(request, path, as_user='EMBED'):
             del subreq.environ['HTTP_COOKIE']
         subreq.remote_user = as_user
     try:
+        print('embed.py:_embed', 'sub req start', path)
         result = request.invoke_subrequest(subreq)
+        print('embed.py:_embed', 'sub req end', path)
     except HTTPNotFound:
         raise KeyError(path)
-    print('embed.py:_embed', 'end %0.6f' % (time.time() - start_time))
+    print('embed.py:_embed', 'end', path, '%0.6f' % (time.time() - start_time))
     return result, subreq._embedded_uuids, subreq._linked_uuids
 
 
