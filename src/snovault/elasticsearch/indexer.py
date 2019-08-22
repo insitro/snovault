@@ -606,6 +606,7 @@ class Indexer(object):
             req_info['url'] ='/%s/@@index-data/' % uuid
             print('es/indexer.py:request.embed start', req_info['url'])
             # index-data endpoint is in indexing_views.py:item_index_data
+            # all embeds go through embed.py:embed
             doc = request.embed(req_info['url'], as_user='INDEXER')
             print('es/indexer.py:request.embed end', req_info['url'])
         except StatementError:
