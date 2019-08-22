@@ -86,7 +86,7 @@ def home(context, request):
 @view_config(context=Root, request_method='GET', name='object')
 @view_config(context=AbstractCollection, permission='list', request_method='GET', name='object')
 def collection_view_object(context, request):
-    print('resource_views.py:collection_view_object')
+    print('*******resource_views.py:collection_view_object')
     properties = context.__json__(request)
     calculated = calculate_properties(context, request, properties)
     properties.update(calculated)
@@ -171,7 +171,7 @@ def uuid_to_path(request, obj, path):
 @view_config(context=Item, permission='view', request_method='GET',
              name='object')
 def item_view_object(context, request):
-    print('resource_views.py:item_view_object')
+    print('*********resource_views.py:item_view_object')
     """ Render json structure
 
     1. Fetch stored properties, possibly upgrading.
