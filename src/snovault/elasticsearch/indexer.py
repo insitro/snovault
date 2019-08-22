@@ -588,7 +588,8 @@ class Indexer(object):
             'end_time': None,
             'run_time': None,
             'errors': [],
-            'url': None
+            'url': None,
+            'time_breakdown': {}
         }
         es_info = {
             'start_time': None,
