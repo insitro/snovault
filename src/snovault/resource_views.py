@@ -195,8 +195,10 @@ def item_view_embedded(context, request):
 
     start_time = time.time()
     for path in context.embedded:
+        start_time_sub = time.time()
         expand_path(request, properties, path)
-    print('item_view_embedded', 'req_expand %.6f' % (time.time() - start_time))
+        print('item_view_embedded', '%s %.6f' % (path, time.time() - start_time_sub))
+    print('item_view_embedded', 'req_expand_path Total %.6f' % (time.time() - start_time))
 
     print('item_view_embedded', 'end')
     return properties

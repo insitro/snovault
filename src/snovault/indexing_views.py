@@ -16,7 +16,7 @@ def includeme(config):
 
 @view_config(context=Item, name='index-data', permission='index', request_method='GET')
 def item_index_data(context, request):
-    print('indexing views', 'start')
+    print('item_index_data', 'start')
     start_time = time.time()
     uuid = str(context.uuid)
     properties = context.upgrade_properties()
@@ -69,11 +69,12 @@ def item_index_data(context, request):
     path = path + '/'
     # embedded endpoint is in resource_views.py:item_view_embedded
     embedded = request.embed(path, '@@embedded')
-    print('indexing views', 'req_embedded %.6f' % (time.time() - start_time))
+    print('item_index_data', 'req_embedded %.6f' % (time.time() - start_time))
 
     start_time = time.time()
+    print('path', path)
     object = request.embed(path, '@@object')
-    # print('indexing views', 'req_object %.6f' % (time.time() - start_time))
+    print('indexing views', 'req_object %.6f' % (time.time() - start_time))
 
     start_time = time.time()
     audit = request.embed(path, '@@audit')['audit']
@@ -101,5 +102,5 @@ def item_index_data(context, request):
     }
     # print('indexing views', 'doc_time %.6f' % (time.time() - start_time))
 
-    print('indexing views', 'end')
+    print('item_index_data', 'end')
     return document
