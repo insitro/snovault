@@ -73,7 +73,7 @@ def expand_path(request, obj, path):
         print('expand_path', 'value is not list', 'post')
         start_time = time.time()
         expand_path(request, value, remaining)
-        print('expand_path', 'value remaining', '%s %s %.6f' % (remaining, time.time() - start_time))
+        print('expand_path', 'value remaining', '%s %.6f' % (remaining, time.time() - start_time))
 
 
 def _get_calculated_properties_from_paths(request, paths):
