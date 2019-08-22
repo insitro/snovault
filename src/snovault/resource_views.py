@@ -195,6 +195,7 @@ def item_view_object(context, request):
         properties.update(calculated)
     print('resource_views.py:item_view_object', 'total %.6f' % (time.time() - start_time))
     print('*********resource_views.py:item_view_object', 'end')
+    print(properties['not_sure'])
     return properties
 
 
