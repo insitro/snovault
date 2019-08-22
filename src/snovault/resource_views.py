@@ -171,17 +171,22 @@ def uuid_to_path(request, obj, path):
 @view_config(context=Item, permission='view', request_method='GET',
              name='object')
 def item_view_object(context, request):
-    print('*********resource_views.py:item_view_object')
+    print('*********resource_views.py:item_view_object', 'start')
     """ Render json structure
 
     1. Fetch stored properties, possibly upgrading.
     2. Link canonicalization (overwriting uuids.)
     3. Calculated properties (including reverse links.)
     """
+    start_time = time.time()
     properties = item_links(context, request)
     if not asbool(request.params.get('skip_calculated')):
+        sub_start_time = time.time()
         calculated = calculate_properties(context, request, properties)
+        print('resource_views.py:item_view_object', 'calculate_properties %.6f' % (remaining, time.time() - sub_start_time))
         properties.update(calculated)
+    print('resource_views.py:item_view_object', 'total %.6f' % (time.time() - start_time))
+    print('*********resource_views.py:item_view_object', 'end')
     return properties
 
 

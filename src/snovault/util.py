@@ -68,6 +68,7 @@ def expand_path(request, obj, path):
         if not isinstance(value, dict):
             print('util.py:expand_path', 'ELSE', 'not isinstance(value, dict)')
             start_time_sub = time.time()
+            # @@object endpoint resource_views.py:item_view_object
             value = obj[name] = request.embed(value, '@@object')
             print('util.py:expand_path', 'ELSE', '@@object', '%s %.6f' % (value, time.time() - start_time_sub))
         print('util.py:expand_path', 'ELSE', 'last')
