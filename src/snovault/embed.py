@@ -1,3 +1,4 @@
+import time
 from .util import quick_deepcopy
 from posixpath import join
 from pyramid.compat import (
@@ -50,6 +51,8 @@ def embed(request, *elements, **kw):
     """
     # Should really be more careful about what gets included instead.
     # Cache cut response time from ~800ms to ~420ms.
+    print('embed.py:embed', 'start')
+    start_time = time.time()
     embed_cache = request.registry[CONNECTION].embed_cache
     as_user = kw.get('as_user')
     path = join(*elements)
@@ -66,10 +69,13 @@ def embed(request, *elements, **kw):
         result = quick_deepcopy(result)
     request._embedded_uuids.update(embedded)
     request._linked_uuids.update(linked)
+    print('embed.py:embed', 'end %0.6f' % (time.time() - start_time))
     return result
 
 
 def _embed(request, path, as_user='EMBED'):
+    print('embed.py:_embed', 'start')
+    start_time = time.time()
     subreq = make_subrequest(request, path)
     subreq.override_renderer = 'null_renderer'
     if as_user is not True:
@@ -80,6 +86,7 @@ def _embed(request, path, as_user='EMBED'):
         result = request.invoke_subrequest(subreq)
     except HTTPNotFound:
         raise KeyError(path)
+    print('embed.py:_embed', 'end %0.6f' % (time.time() - start_time))
     return result, subreq._embedded_uuids, subreq._linked_uuids
 
 
