@@ -600,7 +600,7 @@ class Indexer(object):
         }
         request.datastore = 'database'
         last_exc = None
-        req_info['start_time'] = time.time(p
+        req_info['start_time'] = time.time()
         backoff = 0
         try:
             req_info['url'] ='/%s/@@index-data/' % uuid
