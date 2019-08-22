@@ -567,9 +567,9 @@ class Indexer(object):
             if (i + 1) % 1000 == 0:
                 log.info('Indexing %d', i + 1)
             print('Indexer: Post indexing result****')
-            print("Run Time: %.6f" % (update_info['run_time']))
+            # print("Run Time: %.6f" % (update_info['run_time']))
             print("Req Time: %.6f" % (update_info['req_info']['run_time']))
-            print("Es  Time: %.6f" % (update_info['es_info']['run_time']))
+            # print("Es  Time: %.6f" % (update_info['es_info']['run_time']))
         return errors
 
     @staticmethod
@@ -605,6 +605,7 @@ class Indexer(object):
         try:
             req_info['url'] ='/%s/@@index-data/' % uuid
             print('request.embed start', req_info['url'])
+            # index-data endpoint is in resources.py:item_index_data
             doc = request.embed(req_info['url'], as_user='INDEXER')
             print('request.embed end', req_info['url'])
         except StatementError:

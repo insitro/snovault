@@ -24,7 +24,7 @@ def item_index_data(context, request):
     unique_keys = context.unique_keys(properties)
 
     principals_allowed = {}
-    print('indexing views', 'setup_time %.6f' % (time.time() - start_time))
+    # print('indexing views', 'setup_time %.6f' % (time.time() - start_time))
 
     start_time = time.time()
     for permission in ('view', 'edit', 'audit'):
@@ -39,20 +39,20 @@ def item_index_data(context, request):
         principals_allowed[permission] = [
             p for p in sorted(principals) if not p.startswith('role.')
         ]
-    print('indexing views', 'permission_time %.6f' % (time.time() - start_time))
+    # print('indexing views', 'permission_time %.6f' % (time.time() - start_time))
 
     start_time = time.time()
     path = resource_path(context)
     paths = {path}
     collection = context.collection
-    print('indexing views', 'setup_time 2 %.6f' % (time.time() - start_time))
+    # print('indexing views', 'setup_time 2 %.6f' % (time.time() - start_time))
 
     start_time = time.time()
     if collection.unique_key in unique_keys:
         paths.update(
             resource_path(collection, key)
             for key in unique_keys[collection.unique_key])
-    print('indexing views', 'col_time 1 %.6f' % (time.time() - start_time))
+    # print('indexing views', 'col_time 1 %.6f' % (time.time() - start_time))
 
     start_time = time.time()
     for base in (collection, request.root):
@@ -63,20 +63,21 @@ def item_index_data(context, request):
             paths.update(
                 resource_path(base, key)
                 for key in unique_keys[key_name])
-    print('indexing views', 'col_time 2 %.6f' % (time.time() - start_time))
+    # print('indexing views', 'col_time 2 %.6f' % (time.time() - start_time))
 
     start_time = time.time()
     path = path + '/'
+    # embedded endpoint is in resource_views.py:item_view_embedded
     embedded = request.embed(path, '@@embedded')
     print('indexing views', 'req_embedded %.6f' % (time.time() - start_time))
 
     start_time = time.time()
     object = request.embed(path, '@@object')
-    print('indexing views', 'req_object %.6f' % (time.time() - start_time))
+    # print('indexing views', 'req_object %.6f' % (time.time() - start_time))
 
     start_time = time.time()
     audit = request.embed(path, '@@audit')['audit']
-    print('indexing views', 'req_audit %.6f' % (time.time() - start_time))
+    # print('indexing views', 'req_audit %.6f' % (time.time() - start_time))
 
     start_time = time.time()
     document = {
@@ -98,7 +99,7 @@ def item_index_data(context, request):
         'unique_keys': unique_keys,
         'uuid': uuid,
     }
-    print('indexing views', 'doc_time %.6f' % (time.time() - start_time))
+    # print('indexing views', 'doc_time %.6f' % (time.time() - start_time))
 
     print('indexing views', 'end')
     return document

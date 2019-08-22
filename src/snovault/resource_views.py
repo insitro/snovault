@@ -185,10 +185,19 @@ def item_view_object(context, request):
 @view_config(context=Item, permission='view', request_method='GET',
              name='embedded')
 def item_view_embedded(context, request):
+    print('item_view_embedded', 'start')
+    start_time = time.time()
     item_path = request.resource_path(context)
+    print('path', item_path)
     properties = request.embed(item_path, '@@object')
+    print('item_view_embedded', 'req_object 2 %.6f' % (time.time() - start_time))
+
+    start_time = time.time()
     for path in context.embedded:
         expand_path(request, properties, path)
+    print('item_view_embedded', 'req_expand %.6f' % (time.time() - start_time))
+
+    print('item_view_embedded', 'end')
     return properties
 
 
