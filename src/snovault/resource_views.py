@@ -26,10 +26,12 @@ from .util import expand_path
 
 
 def includeme(config):
+    print('$'*10, 'resoure_views.py:includeme start')
     config.scan(__name__)
 
 
 def remove_item_keys(item, request):
+    print('$'*10, 'resoure_views.py:remove_item_keys start')
     """Remove keys specified in query from item"""
     removed_fields = request.params.getall('remove')
     for field in removed_fields:
@@ -41,6 +43,7 @@ def remove_item_keys(item, request):
 @view_config(context=AbstractCollection, permission='list', request_method='GET',
              name='listing')
 def collection_view_listing_db(context, request):
+    print('$'*10, 'resoure_views.py:collection_view_listing_db start')
     result = {}
 
     frame = request.params.get('frame', 'columns')
@@ -77,6 +80,7 @@ def collection_view_listing_db(context, request):
 
 @view_config(context=Root, request_method='GET', name='page')
 def home(context, request):
+    print('$'*10, 'resoure_views.py:home start')
     properties = request.embed(request.resource_path(context), '@@object')
     calculated = calculate_properties(context, request, properties, category='page')
     properties.update(calculated)
@@ -86,7 +90,7 @@ def home(context, request):
 @view_config(context=Root, request_method='GET', name='object')
 @view_config(context=AbstractCollection, permission='list', request_method='GET', name='object')
 def collection_view_object(context, request):
-    print('*******resource_views.py:collection_view_object')
+    print('$'*10, 'resoure_views.py:collection_view_object start')
     properties = context.__json__(request)
     calculated = calculate_properties(context, request, properties)
     properties.update(calculated)
@@ -95,6 +99,7 @@ def collection_view_object(context, request):
 
 @view_config(context=AbstractCollection, permission='list', request_method='GET', name='page')
 def collection_list(context, request):
+    print('$'*10, 'resoure_views.py:collection_list start')
     path = request.resource_path(context)
     properties = request.embed(path, '@@object')
     calculated = calculate_properties(context, request, properties, category='page')
@@ -112,6 +117,7 @@ def collection_list(context, request):
 @view_config(context=AbstractCollection, permission='list', request_method='GET')
 @view_config(context=Item, permission='view', request_method='GET')
 def item_view(context, request):
+    print('$'*10, 'resoure_views.py:item_view start')
     frame = request.params.get('frame', 'page')
     if getattr(request, '__parent__', None) is None:
         # We need the response headers from non subrequests
@@ -133,6 +139,7 @@ def item_view(context, request):
 
 
 def item_links(context, request):
+    print('$'*10, 'resoure_views.py:item_links start')
     # This works from the schema rather than the links table
     # so that upgrade on GET can work.
     properties = context.__json__(request)
@@ -142,6 +149,7 @@ def item_links(context, request):
 
 
 def uuid_to_path(request, obj, path):
+    print('$'*10, 'resoure_views.py:uuid_to_path start')
     if isinstance(path, basestring):
         path = path.split('.')
     if not path:
@@ -171,7 +179,7 @@ def uuid_to_path(request, obj, path):
 @view_config(context=Item, permission='view', request_method='GET',
              name='object')
 def item_view_object(context, request):
-    print('*********resource_views.py:item_view_object', 'start')
+    print('$'*10, 'resoure_views.py:item_view_object start')
     """ Render json structure
 
     1. Fetch stored properties, possibly upgrading.
@@ -193,7 +201,7 @@ def item_view_object(context, request):
 @view_config(context=Item, permission='view', request_method='GET',
              name='embedded')
 def item_view_embedded(context, request):
-    print('resource_views.py:item_view_embedded', 'start')
+    print('$'*10, 'resoure_views.py:item_view_embedded @@embedded start')
     start_time = time.time()
     item_path = request.resource_path(context)
     properties = request.embed(item_path, '@@object')
@@ -215,6 +223,7 @@ def item_view_embedded(context, request):
 @view_config(context=Item, permission='view', request_method='GET',
              name='page')
 def item_view_page(context, request):
+    print('$'*10, 'resoure_views.py:item_view_page start')
     item_path = request.resource_path(context)
     properties = request.embed(item_path, '@@embedded')
     calculated = calculate_properties(context, request, properties, category='page')
@@ -225,6 +234,7 @@ def item_view_page(context, request):
 @view_config(context=Item, permission='expand', request_method='GET',
              name='expand')
 def item_view_expand(context, request):
+    print('$'*10, 'resoure_views.py:item_view_expand start')
     path = request.resource_path(context)
     properties = request.embed(path, '@@object')
     for path in request.params.getall('expand'):
@@ -233,6 +243,7 @@ def item_view_expand(context, request):
 
 
 def expand_column(request, obj, subset, path):
+    print('$'*10, 'resoure_views.py:expand_column start')
     if isinstance(path, basestring):
         path = path.split('.')
     if not path:
@@ -263,6 +274,7 @@ def expand_column(request, obj, subset, path):
 @view_config(context=Item, permission='view', request_method='GET',
              name='columns')
 def item_view_columns(context, request):
+    print('$'*10, 'resoure_views.py:item_view_columns start')
     path = request.resource_path(context)
     properties = request.embed(path, '@@object')
     if context.schema is None or 'columns' not in context.schema:
@@ -286,6 +298,7 @@ def item_view_columns(context, request):
 @view_config(context=Item, permission='view_raw', request_method='GET',
              name='raw')
 def item_view_raw(context, request):
+    print('$'*10, 'resoure_views.py:item_view_raw start')
     if asbool(request.params.get('upgrade', True)):
         return context.upgrade_properties()
     return context.properties
@@ -294,6 +307,7 @@ def item_view_raw(context, request):
 @view_config(context=Item, permission='edit', request_method='GET',
              name='edit', decorator=etag_tid)
 def item_view_edit(context, request):
+    print('$'*10, 'resoure_views.py:item_view_edit start')
     conn = request.registry[CONNECTION]
     properties = item_links(context, request)
     schema_rev_links = context.type_info.schema_rev_links
@@ -312,6 +326,7 @@ def item_view_edit(context, request):
 @view_config(context=Item, permission='edit', request_method='GET',
              name='form', decorator=etag_tid)
 def item_view_form(context, request):
+    print('$'*10, 'resoure_views.py:item_view_form start')
     properties = item_view_edit(context, request)
     properties['@type'] = context.jsonld_type()
     return properties
