@@ -83,9 +83,10 @@ def _embed(request, path, as_user='EMBED'):
             del subreq.environ['HTTP_COOKIE']
         subreq.remote_user = as_user
     try:
+        sub_start_time = time.time()
         print('embed.py:_embed', 'sub req start', path)
         result = request.invoke_subrequest(subreq)
-        print('embed.py:_embed', 'sub req end', path)
+        print('embed.py:_embed', 'sub req end', path, '%0.6f' % (time.time() - sub_start_time))
     except HTTPNotFound:
         raise KeyError(path)
     print('embed.py:_embed', 'end', path, '%0.6f' % (time.time() - start_time))
