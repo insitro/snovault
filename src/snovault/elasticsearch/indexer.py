@@ -69,7 +69,7 @@ def includeme(config):
     config.add_route('index', '/index')
     config.scan(__name__)
     registry = config.registry
-    processes = registry.settings.get('indexer.processes')
+    processes = None # registry.settings.get('indexer.processes')
     is_indexer = registry.settings.get('indexer')
     if is_indexer:
         available_queues = [DEFAULT_QUEUE]
@@ -566,10 +566,10 @@ class Indexer(object):
                 errors.append(error)
             if (i + 1) % 1000 == 0:
                 log.info('Indexing %d', i + 1)
-                print('****')
-                print("%.6f" % (update_info['start_time']))
-                print("%.6f" % (update_info['end_time']))
-                print("%.6f" % (update_info['run_time']))
+            print('****')
+            print("%.6f" % (update_info['start_time']))
+            print("%.6f" % (update_info['end_time']))
+            print("%.6f" % (update_info['run_time']))
         return errors
 
     @staticmethod
@@ -603,7 +603,9 @@ class Indexer(object):
         backoff = 0
         try:
             req_info['url'] ='/%s/@@index-data/' % uuid
+            print('request.embed start', req_info['url'])
             doc = request.embed(req_info['url'], as_user='INDEXER')
+            print('request.embed end', req_info['url'])
         except StatementError:
             # Can't reconnect until invalid transaction is rolled back
             raise

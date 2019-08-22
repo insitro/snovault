@@ -14,6 +14,7 @@ def includeme(config):
 
 @view_config(context=Item, name='index-data', permission='index', request_method='GET')
 def item_index_data(context, request):
+    print('indexing views', 'start')
     uuid = str(context.uuid)
     properties = context.upgrade_properties()
     links = context.links(properties)
@@ -76,5 +77,5 @@ def item_index_data(context, request):
         'unique_keys': unique_keys,
         'uuid': uuid,
     }
-
+    print('indexing views', 'end')
     return document
