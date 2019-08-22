@@ -566,7 +566,7 @@ class Indexer(object):
                 errors.append(error)
             if (i + 1) % 1000 == 0:
                 log.info('Indexing %d', i + 1)
-            print('****')
+            print('Indexer: Post indexing result****')
             print("%.6f" % (update_info['start_time']))
             print("%.6f" % (update_info['end_time']))
             print("%.6f" % (update_info['run_time']))

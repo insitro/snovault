@@ -191,7 +191,7 @@ class MPIndexer(Indexer):
             uuids = []
             for update_info in update_infos:
                 uuids.append("'" + update_info['uuid'] + "'")
-                print(update_info)
+                print('MPintdexer post indexing', update_info)
                 print('')
                 msg = "update_info {}: {}".format(
                     update_info['uuid'],
