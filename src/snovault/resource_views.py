@@ -179,6 +179,7 @@ def uuid_to_path(request, obj, path):
 @view_config(context=Item, permission='view', request_method='GET',
              name='object')
 def item_view_object(context, request):
+    print(requrest['asdf'])
     print('$'*10, 'resoure_views.py:item_view_object start')
     """ Render json structure
 
