@@ -179,8 +179,7 @@ def uuid_to_path(request, obj, path):
 @view_config(context=Item, permission='view', request_method='GET',
              name='object')
 def item_view_object(context, request):
-    item_path = request.resource_path(context)
-    print('$'*10, 'resoure_views.py:item_view_object start', item_path)
+    print('$'*10, 'resoure_views.py:item_view_object start', request.params)
     """ Render json structure
 
     1. Fetch stored properties, possibly upgrading.
