@@ -22,6 +22,7 @@ def cached_view_embedded(context, request):
 
 @view_config(context=ICachedItem, request_method='GET', name='object')
 def cached_view_object(context, request):
+    print('es chached_views.py:cached_view_object')
     source = context.model.source
     allowed = set(source['principals_allowed']['view'])
     if allowed.isdisjoint(request.effective_principals):
