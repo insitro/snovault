@@ -156,6 +156,7 @@ class MPIndexer(Indexer):
             snapshot_id=None,
             restart=False,
         ):
+        print('mpindexer update objects start')
         # pylint: disable=too-many-arguments, unused-argument
         '''Run multiprocess indexing process on uuids'''
         # Ensure that we iterate over uuids in this thread not the pool task handler.
@@ -215,6 +216,7 @@ class MPIndexer(Indexer):
         except:
             self.shutdown()
             raise
+        print('mpindexer update objects end')
         return errors
 
     def shutdown(self):

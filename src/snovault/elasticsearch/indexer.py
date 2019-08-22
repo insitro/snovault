@@ -277,7 +277,7 @@ def index(request):
         result = state.start_cycle(invalidated, result)
 
         # Do the work...
-
+        print('serve objects')
         errors, err_msg = indexer.serve_objects(
             request,
             invalidated,
