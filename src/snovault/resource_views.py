@@ -1,3 +1,4 @@
+import time
 import sys
 from future.utils import (
     raise_with_traceback,
