@@ -277,7 +277,7 @@ def index(request):
         result = state.start_cycle(invalidated, result)
 
         # Do the work...
-        print('serve objects')
+        print('es/indexer.py:index serve objects')
         errors, err_msg = indexer.serve_objects(
             request,
             invalidated,
@@ -600,14 +600,14 @@ class Indexer(object):
         }
         request.datastore = 'database'
         last_exc = None
-        req_info['start_time'] = time.time()
+        req_info['start_time'] = time.time(p
         backoff = 0
         try:
             req_info['url'] ='/%s/@@index-data/' % uuid
-            print('request.embed start', req_info['url'])
-            # index-data endpoint is in resources.py:item_index_data
+            print('es/indexer.py:request.embed start', req_info['url'])
+            # index-data endpoint is in indexing_views.py:item_index_data
             doc = request.embed(req_info['url'], as_user='INDEXER')
-            print('request.embed end', req_info['url'])
+            print('es/indexer.py:request.embed end', req_info['url'])
         except StatementError:
             # Can't reconnect until invalid transaction is rolled back
             raise

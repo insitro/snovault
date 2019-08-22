@@ -38,9 +38,9 @@ def simple_path_ids(obj, path):
 
 
 def expand_path(request, obj, path):
-    print('expand_path', 'start')
+    print('util.py:expand_path', 'start')
     if isinstance(path, basestring):
-        print('expand_path', 'basestring')
+        print('util.py:expand_path', 'basestring')
         path = path.split('.')
     if not path:
         return
@@ -48,32 +48,32 @@ def expand_path(request, obj, path):
     remaining = path[1:]
     value = obj.get(name, None)
     if value is None:
-        print('expand_path', 'value is None')
+        print('util.py:expand_path', 'value is None')
         return
     if isinstance(value, list):
-        print('expand_path', 'value is list', 'start')
+        print('util.py:expand_path', 'isinstance(value, list)', 'loop start')
         for index, member in enumerate(value):
-            print('expand_path', 'value is list', 'loop')
             if not isinstance(member, dict):
-                print('expand_path', 'not member dict')
+                print('util.py:expand_path', 'isinstance(value, list)', 'not dict')
                 start_time_sub = time.time()
                 member = value[index] = request.embed(member, '@@object')
-                print('expand_path', 'not member dict', '%s %.6f' % (member, time.time() - start_time_sub))
-            print('expand_path', 'value is list', 'loop end')
+                print('util.py:expand_path', 'isinstance(value, list)', '@@object', '%s %.6f' % (member, time.time() - start_time_sub))
+            print('util.py:expand_path', 'isinstance(value, list)', 'last')
             start_time = time.time()
             expand_path(request, member, remaining)
-            print('expand_path', 'remaining', '%s %.6f' % (remaining, time.time() - start_time))
+            print('util.py:expand_path', 'isinstance(value, list)', 'expand_path', '%s %.6f' % (remaining, time.time() - start_time))
+        print('util.py:expand_path', 'isinstance(value, list)', 'loop end')
     else:
-        print('expand_path', 'value is not list', 'start')
+        print('util.py:expand_path', 'ELSE')
         if not isinstance(value, dict):
-            print('expand_path', 'value is not list', 'not dict')
+            print('util.py:expand_path', 'ELSE', 'not isinstance(value, dict)')
             start_time_sub = time.time()
             value = obj[name] = request.embed(value, '@@object')
-            print('expand_path', 'value', '%s %.6f' % (value, time.time() - start_time_sub))
-        print('expand_path', 'value is not list', 'post')
+            print('util.py:expand_path', 'ELSE', '@@object', '%s %.6f' % (value, time.time() - start_time_sub))
+        print('util.py:expand_path', 'ELSE', 'last')
         start_time = time.time()
         expand_path(request, value, remaining)
-        print('expand_path', 'value remaining', '%s %.6f' % (remaining, time.time() - start_time))
+        print('util.py:expand_path', 'ELSE', 'expand_path', '%s %.6f' % (remaining, time.time() - start_time))
 
 
 def _get_calculated_properties_from_paths(request, paths):
