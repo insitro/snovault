@@ -68,6 +68,8 @@ def embed(request, *elements, **kw):
         result = quick_deepcopy(result)
     request._embedded_uuids.update(embedded)
     request._linked_uuids.update(linked)
+    print('embed.py:embed', request.url, 'embedded uuids', embedded)
+    print('embed.py:embed', request.url, 'linked uuids', linked)
     print('embed.py:embed', 'end', request.url)
     return result
 
