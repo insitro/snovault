@@ -30,7 +30,6 @@ def includeme(config):
 
 
 def remove_item_keys(item, request):
-    print('$'*10, 'resoure_views.py:remove_item_keys start')
     """Remove keys specified in query from item"""
     removed_fields = request.params.getall('remove')
     for field in removed_fields:
@@ -42,7 +41,6 @@ def remove_item_keys(item, request):
 @view_config(context=AbstractCollection, permission='list', request_method='GET',
              name='listing')
 def collection_view_listing_db(context, request):
-    print('$'*10, 'resoure_views.py:collection_view_listing_db start')
     result = {}
 
     frame = request.params.get('frame', 'columns')
@@ -79,7 +77,6 @@ def collection_view_listing_db(context, request):
 
 @view_config(context=Root, request_method='GET', name='page')
 def home(context, request):
-    print('$'*10, 'resoure_views.py:home start')
     properties = request.embed(request.resource_path(context), '@@object')
     calculated = calculate_properties(context, request, properties, category='page')
     properties.update(calculated)
@@ -89,7 +86,6 @@ def home(context, request):
 @view_config(context=Root, request_method='GET', name='object')
 @view_config(context=AbstractCollection, permission='list', request_method='GET', name='object')
 def collection_view_object(context, request):
-    print('$'*10, 'resoure_views.py:collection_view_object start')
     properties = context.__json__(request)
     calculated = calculate_properties(context, request, properties)
     properties.update(calculated)
@@ -98,7 +94,6 @@ def collection_view_object(context, request):
 
 @view_config(context=AbstractCollection, permission='list', request_method='GET', name='page')
 def collection_list(context, request):
-    print('$'*10, 'resoure_views.py:collection_list start')
     path = request.resource_path(context)
     properties = request.embed(path, '@@object')
     calculated = calculate_properties(context, request, properties, category='page')
@@ -116,7 +111,6 @@ def collection_list(context, request):
 @view_config(context=AbstractCollection, permission='list', request_method='GET')
 @view_config(context=Item, permission='view', request_method='GET')
 def item_view(context, request):
-    print('$'*10, 'resoure_views.py:item_view start')
     frame = request.params.get('frame', 'page')
     if getattr(request, '__parent__', None) is None:
         # We need the response headers from non subrequests
@@ -138,7 +132,6 @@ def item_view(context, request):
 
 
 def item_links(context, request):
-    print('$'*10, 'resoure_views.py:item_links start')
     # This works from the schema rather than the links table
     # so that upgrade on GET can work.
     properties = context.__json__(request)
@@ -148,7 +141,6 @@ def item_links(context, request):
 
 
 def uuid_to_path(request, obj, path):
-    print('$'*10, 'resoure_views.py:uuid_to_path start')
     if isinstance(path, basestring):
         path = path.split('.')
     if not path:
@@ -178,7 +170,9 @@ def uuid_to_path(request, obj, path):
 @view_config(context=Item, permission='view', request_method='GET',
              name='object')
 def item_view_object(context, request):
-    print('$'*10, 'resoure_views.py:item_view_object start')
+    path = request.resource_path(context)
+    print('')
+    print('resoure_views.py:item_view_object start', path)
     print(request.url)
     for key, value in request.params.iteritems():
         print(key, value)
@@ -192,11 +186,12 @@ def item_view_object(context, request):
     properties = item_links(context, request)
     if not asbool(request.params.get('skip_calculated')):
         sub_start_time = time.time()
+        print('resoure_views.py:item_view_object call calculate_properties', path)
         calculated = calculate_properties(context, request, properties)
         print('resource_views.py:item_view_object', 'calculate_properties %.6f' % (time.time() - sub_start_time))
         properties.update(calculated)
     print('resource_views.py:item_view_object', 'total %.6f' % (time.time() - start_time))
-    print('*********resource_views.py:item_view_object', 'end')
+    print('resource_views.py:item_view_object end', path)
     return properties
 
 
