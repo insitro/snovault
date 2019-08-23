@@ -173,11 +173,7 @@ def item_view_object(context, request):
     path = request.resource_path(context)
     print('')
     print('resoure_views.py:item_view_object start', path)
-    print(request.url)
-    for key, value in request.params.iteritems():
-        print(key, value)
     """ Render json structure
-
     1. Fetch stored properties, possibly upgrading.
     2. Link canonicalization (overwriting uuids.)
     3. Calculated properties (including reverse links.)
@@ -190,8 +186,7 @@ def item_view_object(context, request):
         calculated = calculate_properties(context, request, properties)
         print('resource_views.py:item_view_object', 'calculate_properties %.6f' % (time.time() - sub_start_time))
         properties.update(calculated)
-    print('resource_views.py:item_view_object', 'total %.6f' % (time.time() - start_time))
-    print('resource_views.py:item_view_object end', path)
+    print('resource_views.py:item_view_object end', path, 'total %.6f' % (time.time() - start_time))
     return properties
 
 
@@ -205,7 +200,7 @@ def item_view_embedded(context, request):
     print('resoure_views.py:item_view_embedded', 'call embed @@object', item_path)
     properties = request.embed(item_path, '@@object')
     print('resource_views.py:item_view_embedded', '@@object %s %.6f' % (item_path, time.time() - start_time))
-
+    print('')
     start_time = time.time()
     for path in context.embedded:
         start_time_sub = time.time()
@@ -214,8 +209,7 @@ def item_view_embedded(context, request):
         print('resoure_views.py:item_view_embedded', 'call expand_path loop start', path)
         expand_path(request, properties, path)
         print('resource_views.py:item_view_embedded', 'call expand_path loop end %s %.6f' % (path, time.time() - start_time_sub))
-    print('resource_views.py:item_view_embedded', 'call expand_path Total %.6f' % (time.time() - start_time))
-    print('resource_views.py:item_view_embedded', 'end', item_path)
+    print('resource_views.py:item_view_embedded', 'end', item_path, '%.6f' % (time.time() - start_time))
     return properties
 
 
