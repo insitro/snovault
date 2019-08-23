@@ -28,7 +28,6 @@ def make_subrequest(request, path):
     May be better to just pull out the resource through traversal and manually
     perform security checks.
     """
-    print('embed.py:make_subrequest', 'start', path)
     env = request.environ.copy()
     if path and '?' in path:
         path_info, query_string = path.split('?', 1)
@@ -43,7 +42,6 @@ def make_subrequest(request, path):
     subreq.remove_conditional_headers()
     # XXX "This does not remove headers like If-Match"
     subreq.__parent__ = request
-    print('embed.py:make_subrequest', 'end', path)
     return subreq
 
 
@@ -86,6 +84,8 @@ def _embed(request, path, as_user='EMBED'):
         subreq.remote_user = as_user
     try:
         sub_start_time = time.time()
+        print('embed.py:_embed', 'call invoke_subrequest', path)
+        print(subreq)
         result = request.invoke_subrequest(subreq)
     except HTTPNotFound:
         raise KeyError(path)
