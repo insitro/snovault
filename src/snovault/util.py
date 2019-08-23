@@ -38,9 +38,10 @@ def simple_path_ids(obj, path):
 
 
 def expand_path(request, obj, path):
-    print('util.py:expand_path', 'start')
+    print('')
+    print('util.py:expand_path', 'start', path)
     if isinstance(path, basestring):
-        print('util.py:expand_path', 'basestring')
+        print('util.py:expand_path', 'basestring', path)
         path = path.split('.')
     if not path:
         return
@@ -48,16 +49,19 @@ def expand_path(request, obj, path):
     remaining = path[1:]
     value = obj.get(name, None)
     if value is None:
-        print('util.py:expand_path', 'value is None')
+        print('util.py:expand_path', 'value is None', path)
         return
     if isinstance(value, list):
-        print('util.py:expand_path', 'isinstance(value, list)', 'loop start')
+        print('util.py:expand_path', 'isinstance(value, list)', 'loop start',
+                path)
         for index, member in enumerate(value):
             if not isinstance(member, dict):
-                print('util.py:expand_path', 'isinstance(value, list)', 'not dict')
+                print('util.py:expand_path', 'isinstance(value, list)', 'not dict', path)
                 start_time_sub = time.time()
                 member = value[index] = request.embed(member, '@@object')
-                print('util.py:expand_path', 'isinstance(value, list)', '@@object', '%s %.6f' % (member, time.time() - start_time_sub))
+                print('util.py:expand_path', 'isinstance(value, list)',
+                        '@@object', '%s %.6f' % (member, time.time() -
+                            start_time_sub), path)
             print('util.py:expand_path', 'isinstance(value, list)', 'last')
             start_time = time.time()
             expand_path(request, member, remaining)

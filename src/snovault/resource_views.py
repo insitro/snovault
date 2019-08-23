@@ -200,12 +200,14 @@ def item_view_object(context, request):
     return properties
 
 
-@view_config(context=Item, permission='view', request_method='GET',
-             name='embedded')
+@view_config(context=Item, permission='view', request_method='GET', name='embedded')
 def item_view_embedded(context, request):
-    print('resoure_views.py:item_view_embedded @@embedded start')
-    start_time = time.time()
     item_path = request.resource_path(context)
+    print('')
+    print('resoure_views.py:item_view_embedded', '@@embedded start', item_path)
+    start_time = time.time()
+
+    print('resoure_views.py:item_view_embedded', 'call embed @@object', item_path)
     properties = request.embed(item_path, '@@object')
     print('resource_views.py:item_view_embedded', '@@object %s %.6f' % (item_path, time.time() - start_time))
 
@@ -214,11 +216,11 @@ def item_view_embedded(context, request):
         start_time_sub = time.time()
         # expand_path function is in util.py:expand_path
         # It is a recursive function that also may hit @@object endpoint
+        print('resoure_views.py:item_view_embedded', 'call expand_path loop start', path)
         expand_path(request, properties, path)
-        print('resource_views.py:item_view_embedded', 'expand_path loop %s %.6f' % (path, time.time() - start_time_sub))
-    print('resource_views.py:item_view_embedded', 'expand_path Total %.6f' % (time.time() - start_time))
-
-    print('resource_views.py:item_view_embedded', 'end')
+        print('resource_views.py:item_view_embedded', 'call expand_path loop end %s %.6f' % (path, time.time() - start_time_sub))
+    print('resource_views.py:item_view_embedded', 'call expand_path Total %.6f' % (time.time() - start_time))
+    print('resource_views.py:item_view_embedded', 'end', item_path)
     return properties
 
 

@@ -64,7 +64,7 @@ def item_index_data(context, request):
     start_time = time.time()
     path = path + '/'
     # embedded endpoint is in resource_views.py:item_view_embedded
-    print('indexing_views.py:item_index_data', 'call embed', path)
+    print('indexing_views.py:item_index_data', 'call embed @@embedded', path)
     embedded = request.embed(path, '@@embedded')
     print('indexing_views.py:item_index_data', '@@embedded %s %.6f' % (path, time.time() - start_time))
     asdf
