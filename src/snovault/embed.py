@@ -50,20 +50,20 @@ def make_subrequest(request, path):
 def embed(request, *elements, **kw):
     """ as_user=True for current user
     """
-    print('embed.py:embed', 'start', request.url)
     # Should really be more careful about what gets included instead.
     # Cache cut response time from ~800ms to ~420ms.
     embed_cache = request.registry[CONNECTION].embed_cache
     as_user = kw.get('as_user')
     path = join(*elements)
     path = unquote_bytes_to_wsgi(native_(path))
-    log.debug('embed: %s', path)
+    # log.debug('embed: %s', path)
+    print('embed.py:embed', 'start', path)
     if as_user is not None:
         result, embedded, linked = _embed(request, path, as_user)
     else:
         cached = embed_cache.get(path, None)
         if cached is None:
-            print('embed.py:embed', 'call _embed', request.url)
+            print('embed.py:embed', 'call _embed', path)
             cached = _embed(request, path)
             embed_cache[path] = cached
         result, embedded, linked = cached
