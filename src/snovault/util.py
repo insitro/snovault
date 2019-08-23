@@ -41,7 +41,6 @@ def expand_path(request, obj, path):
     print('')
     print('util.py:expand_path', 'start', path)
     if isinstance(path, basestring):
-        print('util.py:expand_path', 'basestring', path)
         path = path.split('.')
     if not path:
         return
@@ -73,6 +72,7 @@ def expand_path(request, obj, path):
             print('util.py:expand_path', 'ELSE', 'not isinstance(value, dict)')
             start_time_sub = time.time()
             # @@object endpoint resource_views.py:item_view_object
+            print('util.py:expand_path', 'ELSE', 'embed @@object', value)
             value = obj[name] = request.embed(value, '@@object')
             print('util.py:expand_path', 'ELSE', '@@object', '%s %.6f' % (value, time.time() - start_time_sub))
         print('util.py:expand_path', 'ELSE', 'last')
