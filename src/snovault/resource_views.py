@@ -180,7 +180,6 @@ def uuid_to_path(request, obj, path):
              name='object')
 def item_view_object(context, request):
     print('$'*10, 'resoure_views.py:item_view_object start')
-    print(dir(request))
     print(request.url)
     for key, value in request.params.iteritems():
         print(key, value)

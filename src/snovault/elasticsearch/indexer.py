@@ -603,12 +603,16 @@ class Indexer(object):
         req_info['start_time'] = time.time()
         backoff = 0
         try:
-            req_info['url'] ='/%s/@@index-data/' % uuid
-            print('es/indexer.py:request.embed start', req_info['url'])
             # index-data endpoint is in indexing_views.py:item_index_data
-            # all embeds go through embed.py:embed
+            req_info['url'] ='/%s/@@index-data/' % uuid
+            print('!'*10, 'es/indexer.py:request.embed start')
+            print('!'*10, 'es/indexer.py:request.embed start')
+            print('!'*10, 'es/indexer.py:request.embed start', req_info['url'])
+            # request.embed goes through embed.py middleware prior to hitting
+            # index-data endpoint.  See request methods added in the includeme
+            # at the top of that file.
             doc = request.embed(req_info['url'], as_user='INDEXER')
-            print('es/indexer.py:request.embed end', req_info['url'])
+            print('!'*10, 'es/indexer.py:request.embed end', req_info['url'])
         except StatementError:
             # Can't reconnect until invalid transaction is rolled back
             raise

@@ -28,6 +28,7 @@ def make_subrequest(request, path):
     May be better to just pull out the resource through traversal and manually
     perform security checks.
     """
+    print('embed.py:make_subrequest', 'start', request.url)
     env = request.environ.copy()
     if path and '?' in path:
         path_info, query_string = path.split('?', 1)
@@ -42,40 +43,40 @@ def make_subrequest(request, path):
     subreq.remove_conditional_headers()
     # XXX "This does not remove headers like If-Match"
     subreq.__parent__ = request
+    print('embed.py:make_subrequest', 'end', request.url)
     return subreq
-
 
 
 def embed(request, *elements, **kw):
     """ as_user=True for current user
     """
+    print('embed.py:embed', 'start', request.url)
     # Should really be more careful about what gets included instead.
     # Cache cut response time from ~800ms to ~420ms.
-    start_time = time.time()
     embed_cache = request.registry[CONNECTION].embed_cache
     as_user = kw.get('as_user')
     path = join(*elements)
     path = unquote_bytes_to_wsgi(native_(path))
-    print('embed.py:embed', 'start', path)
     log.debug('embed: %s', path)
     if as_user is not None:
         result, embedded, linked = _embed(request, path, as_user)
     else:
         cached = embed_cache.get(path, None)
         if cached is None:
+            print('embed.py:embed', 'call _embed', request.url)
             cached = _embed(request, path)
             embed_cache[path] = cached
         result, embedded, linked = cached
         result = quick_deepcopy(result)
     request._embedded_uuids.update(embedded)
     request._linked_uuids.update(linked)
-    print('embed.py:embed', 'end', path, 'end %0.6f' % (time.time() - start_time))
+    print('embed.py:embed', 'end', request.url)
     return result
 
 
 def _embed(request, path, as_user='EMBED'):
-    print('embed.py:_embed', 'start', path)
-    start_time = time.time()
+    print('embed.py:_embed', 'start', request.url)
+    print('embed.py:_embed', 'call make_subrequest', request.url)
     subreq = make_subrequest(request, path)
     subreq.override_renderer = 'null_renderer'
     if as_user is not True:
@@ -84,12 +85,10 @@ def _embed(request, path, as_user='EMBED'):
         subreq.remote_user = as_user
     try:
         sub_start_time = time.time()
-        print('embed.py:_embed', 'sub req start', path)
         result = request.invoke_subrequest(subreq)
-        print('embed.py:_embed', 'sub req end', path, '%0.6f' % (time.time() - sub_start_time))
     except HTTPNotFound:
         raise KeyError(path)
-    print('embed.py:_embed', 'end', path, '%0.6f' % (time.time() - start_time))
+    print('embed.py:_embed', 'end', request.url)
     return result, subreq._embedded_uuids, subreq._linked_uuids
 
 
