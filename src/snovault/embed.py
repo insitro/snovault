@@ -55,6 +55,7 @@ def embed(request, *elements, **kw):
     path = join(*elements)
     path = unquote_bytes_to_wsgi(native_(path))
     # log.debug('embed: %s', path)
+    print('')
     print('embed.py:embed', 'start', path)
     if as_user is not None:
         print('embed.py:embed', 'call as_user _embed', path)
