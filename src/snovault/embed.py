@@ -86,7 +86,6 @@ def _embed(request, path, as_user='EMBED'):
     try:
         sub_start_time = time.time()
         print('embed.py:_embed', 'call invoke_subrequest', path)
-        print(subreq)
         result = request.invoke_subrequest(subreq)
     except HTTPNotFound:
         raise KeyError(path)

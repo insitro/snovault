@@ -26,7 +26,6 @@ from .util import expand_path
 
 
 def includeme(config):
-    print('$'*10, 'resoure_views.py:includeme start')
     config.scan(__name__)
 
 
