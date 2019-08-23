@@ -605,6 +605,7 @@ class Indexer(object):
         try:
             # index-data endpoint is in indexing_views.py:item_index_data
             req_info['url'] ='/%s/@@index-data/' % uuid
+            print('')
             print('!'*10, 'es/indexer.py:request.embed start')
             print('!'*10, 'es/indexer.py:request.embed start')
             print('!'*10, 'es/indexer.py:request.embed start', req_info['url'])

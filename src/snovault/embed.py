@@ -28,7 +28,7 @@ def make_subrequest(request, path):
     May be better to just pull out the resource through traversal and manually
     perform security checks.
     """
-    print('embed.py:make_subrequest', 'start', request.url)
+    print('embed.py:make_subrequest', 'start', path)
     env = request.environ.copy()
     if path and '?' in path:
         path_info, query_string = path.split('?', 1)
@@ -43,7 +43,7 @@ def make_subrequest(request, path):
     subreq.remove_conditional_headers()
     # XXX "This does not remove headers like If-Match"
     subreq.__parent__ = request
-    print('embed.py:make_subrequest', 'end', request.url)
+    print('embed.py:make_subrequest', 'end', path)
     return subreq
 
 
@@ -58,6 +58,7 @@ def embed(request, *elements, **kw):
     path = unquote_bytes_to_wsgi(native_(path))
     # log.debug('embed: %s', path)
     print('embed.py:embed', 'start', path)
+    asdf
     if as_user is not None:
         result, embedded, linked = _embed(request, path, as_user)
     else:
@@ -75,8 +76,8 @@ def embed(request, *elements, **kw):
 
 
 def _embed(request, path, as_user='EMBED'):
-    print('embed.py:_embed', 'start', request.url)
-    print('embed.py:_embed', 'call make_subrequest', request.url)
+    print('embed.py:_embed', 'start', path)
+    print('embed.py:_embed', 'call make_subrequest', path)
     subreq = make_subrequest(request, path)
     subreq.override_renderer = 'null_renderer'
     if as_user is not True:
@@ -88,7 +89,7 @@ def _embed(request, path, as_user='EMBED'):
         result = request.invoke_subrequest(subreq)
     except HTTPNotFound:
         raise KeyError(path)
-    print('embed.py:_embed', 'end', request.url)
+    print('embed.py:_embed', 'end', path)
     return result, subreq._embedded_uuids, subreq._linked_uuids
 
 
