@@ -609,7 +609,8 @@ class Indexer(object):
             print('!'*10, 'es/indexer.py:request.embed start')
             print('!'*10, 'es/indexer.py:request.embed start', req_info['url'])
             # request.embed goes through embed.py middleware prior to hitting
-            # index-data endpoint in indexing_views.py:item_index_data.
+            # index-data endpoint in indexing_views.py:item_index_data through
+            # a subrequest.
             doc = request.embed(req_info['url'], as_user='INDEXER')
             print('!'*10, 'es/indexer.py:request.embed end', req_info['url'])
         except StatementError:

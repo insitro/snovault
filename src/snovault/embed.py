@@ -57,11 +57,12 @@ def embed(request, *elements, **kw):
     # log.debug('embed: %s', path)
     print('embed.py:embed', 'start', path)
     if as_user is not None:
+        print('embed.py:embed', 'call as_user _embed', path)
         result, embedded, linked = _embed(request, path, as_user)
     else:
         cached = embed_cache.get(path, None)
         if cached is None:
-            print('embed.py:embed', 'call _embed', path)
+            print('embed.py:embed', 'call not cached _embed', path)
             cached = _embed(request, path)
             embed_cache[path] = cached
         result, embedded, linked = cached
@@ -76,7 +77,6 @@ def embed(request, *elements, **kw):
 
 def _embed(request, path, as_user='EMBED'):
     print('embed.py:_embed', 'start', path)
-    print('embed.py:_embed', 'call make_subrequest', path)
     subreq = make_subrequest(request, path)
     subreq.override_renderer = 'null_renderer'
     if as_user is not True:

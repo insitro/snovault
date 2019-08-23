@@ -16,8 +16,7 @@ def includeme(config):
 
 @view_config(context=Item, name='index-data', permission='index', request_method='GET')
 def item_index_data(context, request):
-    print('indexing_views.py:item_index_data', 'start', request.url)
-    jklasdfjja
+    print('indexing_views.py:item_index_data', '@@index-data start', request.url)
     start_time = time.time()
     uuid = str(context.uuid)
     properties = context.upgrade_properties()
@@ -94,5 +93,5 @@ def item_index_data(context, request):
         'uuid': uuid,
     }
 
-    print('indexing_views.py:item_index_data', 'end', request.url)
+    print('indexing_views.py:item_index_data', '@@index-data end', request.url)
     return document

@@ -204,7 +204,7 @@ def item_view_object(context, request):
 @view_config(context=Item, permission='view', request_method='GET',
              name='embedded')
 def item_view_embedded(context, request):
-    print('$'*10, 'resoure_views.py:item_view_embedded @@embedded start')
+    print('resoure_views.py:item_view_embedded @@embedded start')
     start_time = time.time()
     item_path = request.resource_path(context)
     properties = request.embed(item_path, '@@object')
