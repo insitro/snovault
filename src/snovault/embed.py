@@ -56,7 +56,6 @@ def embed(request, *elements, **kw):
     path = unquote_bytes_to_wsgi(native_(path))
     # log.debug('embed: %s', path)
     print('embed.py:embed', 'start', path)
-    asdf
     if as_user is not None:
         result, embedded, linked = _embed(request, path, as_user)
     else:
