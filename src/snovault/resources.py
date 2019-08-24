@@ -1,4 +1,5 @@
 # See http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/resources.html
+import time
 import logging
 from collections import Mapping
 from pyramid.decorator import reify
