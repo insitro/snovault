@@ -91,7 +91,11 @@ def _embed(request, path, as_user='EMBED'):
         sub_start_time = time.time()
         print('1', time.time())
         print('embed.py:_embed', 'call invoke_subrequest', path)
-        result = request.invoke_subrequest(subreq)
+        if path == '/labs/peggy-farnham/@@object':
+            subreq2 = subreq
+            results = request.invoke_subrequest(subreq2)
+        else:
+            result = request.invoke_subrequest(subreq)
         if path == 'x/labs/peggy-farnham/@@object':
             fjfj
         print('embed.py:_embed', 'call invoke_subrequest', path, '%.6f' % (time.time() - sub_start_time))
