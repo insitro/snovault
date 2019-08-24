@@ -1,3 +1,4 @@
+import time
 from past.builtins import basestring
 from pyramid.decorator import reify
 from uuid import UUID
@@ -63,30 +64,46 @@ class Connection(object):
         return item
 
     def get_by_unique_key(self, unique_key, name, default=None, index=None):
+        start_time = time.time()
+        print('1 get_by_unique_key %0.6f' % (time.time() - start_time))
         pkey = (unique_key, name)
-
+        print('2 get_by_unique_key %0.6f' % (time.time() - start_time))
         cached = self.unique_key_cache.get(pkey)
+        print('3 get_by_unique_key %0.6f' % (time.time() - start_time))
         if cached is not None:
+            print('4 get_by_unique_key %0.6f' % (time.time() - start_time))
             return self.get_by_uuid(cached)
 
+        print('5 get_by_unique_key %0.6f' % (time.time() - start_time))
         model = self.storage.get_by_unique_key(unique_key, name, index=index)
+        print('6 get_by_unique_key %0.6f' % (time.time() - start_time))
         if model is None:
+            print('7 get_by_unique_key %0.6f' % (time.time() - start_time))
             return default
-
+        print('8 get_by_unique_key %0.6f' % (time.time() - start_time))
         uuid = model.uuid
+        print('9 get_by_unique_key %0.6f' % (time.time() - start_time))
         self.unique_key_cache[pkey] = uuid
+        print('10 get_by_unique_key %0.6f' % (time.time() - start_time))
         cached = self.item_cache.get(uuid)
+        print('11 get_by_unique_key %0.6f' % (time.time() - start_time))
         if cached is not None:
             return cached
-
+        print('12 get_by_unique_key %0.6f' % (time.time() - start_time))
         try:
+            print('13 get_by_unique_key %0.6f' % (time.time() - start_time))
             Item = self.types.by_item_type[model.item_type].factory
+            print('14 get_by_unique_key %0.6f' % (time.time() - start_time))
         except KeyError:
             raise UnknownItemTypeError(model.item_type)
 
+        print('15 get_by_unique_key %0.6f' % (time.time() - start_time))
         item = Item(self.registry, model)
+        print('16 get_by_unique_key %0.6f' % (time.time() - start_time))
         model.used_for(item)
+        print('17 get_by_unique_key %0.6f' % (time.time() - start_time))
         self.item_cache[uuid] = item
+        print('18 get_by_unique_key %0.6f' % (time.time() - start_time))
         return item
 
     def get_rev_links(self, model, rel, *types):
