@@ -89,11 +89,13 @@ def _embed(request, path, as_user='EMBED'):
         subreq.remote_user = as_user
     try:
         sub_start_time = time.time()
+        print('1', time.time())
         print('embed.py:_embed', 'call invoke_subrequest', path)
         result = request.invoke_subrequest(subreq)
         if path == 'x/labs/peggy-farnham/@@object':
             fjfj
         print('embed.py:_embed', 'call invoke_subrequest', path, '%.6f' % (time.time() - sub_start_time))
+        print('2', time.time())
     except HTTPNotFound:
         raise KeyError(path)
     print('embed.py:_embed', 'end', path, '%.6f' % (time.time() - start_time))

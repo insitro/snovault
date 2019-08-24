@@ -171,6 +171,7 @@ def uuid_to_path(request, obj, path):
              name='object')
 def item_view_object(context, request):
     path = request.resource_path(context)
+    print('a', time.time())
     print('')
     print('resoure_views.py:item_view_object start', path)
     if path == '/xlabs/peggy-farnham/':
@@ -189,6 +190,7 @@ def item_view_object(context, request):
         print('resource_views.py:item_view_object', 'calculate_properties %.6f' % (time.time() - sub_start_time))
         properties.update(calculated)
     print('resource_views.py:item_view_object end', path, 'total %.6f' % (time.time() - start_time))
+    print('b', time.time())
     return properties
 
 
