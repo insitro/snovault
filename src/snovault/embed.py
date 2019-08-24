@@ -48,6 +48,7 @@ def make_subrequest(request, path):
 def embed(request, *elements, **kw):
     """ as_user=True for current user
     """
+    start_time = time.time()
     # Should really be more careful about what gets included instead.
     # Cache cut response time from ~800ms to ~420ms.
     embed_cache = request.registry[CONNECTION].embed_cache
@@ -73,11 +74,12 @@ def embed(request, *elements, **kw):
     print('')
     print('embed.py:embed', request.url, 'embedded uuids', embedded)
     print('embed.py:embed', request.url, 'linked uuids', linked)
-    print('embed.py:embed', 'end', request.url)
+    print('embed.py:embed', 'end', request.url, '%.6f' % (time.time() - start_time))
     return result
 
 
 def _embed(request, path, as_user='EMBED'):
+    start_time = time.time()
     print('embed.py:_embed', 'start', path)
     subreq = make_subrequest(request, path)
     subreq.override_renderer = 'null_renderer'
@@ -91,7 +93,7 @@ def _embed(request, path, as_user='EMBED'):
         result = request.invoke_subrequest(subreq)
     except HTTPNotFound:
         raise KeyError(path)
-    print('embed.py:_embed', 'end', path)
+    print('embed.py:_embed', 'end', path, '%.6f' % (time.time() - start_time))
     return result, subreq._embedded_uuids, subreq._linked_uuids
 
 
