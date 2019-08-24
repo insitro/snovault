@@ -174,7 +174,7 @@ def item_view_object(context, request):
     print('a', time.time())
     print('')
     print('resoure_views.py:item_view_object start', path)
-    if path == '/xlabs/peggy-farnham/':
+    if path == '/labs/peggy-farnham/':
         asdf
     """ Render json structure
     1. Fetch stored properties, possibly upgrading.
