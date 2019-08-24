@@ -134,14 +134,22 @@ class AbstractCollection(Resource, Mapping):
         return self.registry[ROOT]
 
     def __getitem__(self, name):
+        start_time = time.time()
+        print('1 sno coll getitem %0.6f' % (time.time() - start_time), name)
         try:
+            print('2 sno coll getitem %0.6f' % (time.time() - start_time), name)
             item = self.get(name)
+            print('3 sno coll getitem %0.6f' % (time.time() - start_time), name)
         except KeyError:
             # Just in case we get an unexpected KeyError
             # FIXME: exception logging.
+            print('4 sno coll getitem %0.6f' % (time.time() - start_time), name)
             raise HTTPInternalServerError('Traversal raised KeyError')
+        print('5 sno coll getitem %0.6f' % (time.time() - start_time), name)
         if item is None:
+            print('6 sno coll getitem %0.6f' % (time.time() - start_time), name)
             raise KeyError(name)
+        print('7 sno coll getitem %0.6f' % (time.time() - start_time), name)
         return item
 
     def __iter__(self):
