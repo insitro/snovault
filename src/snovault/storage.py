@@ -1,3 +1,4 @@
+import time
 from pyramid.httpexceptions import HTTPConflict
 from sqlalchemy import (
     Column,
@@ -95,12 +96,18 @@ class RDBStorage(object):
         return model
 
     def get_by_unique_key(self, unique_key, name, default=None, index=None):
+        start_time = time.time()
+        print('1 storage get_by_unique_key %0.6f' % (time.time() - start_time))
         session = self.DBSession()
         try:
+            print('2 storage get_by_unique_key %0.6f' % (time.time() - start_time))
             key = baked_query_unique_key(session).params(name=unique_key, value=name).one()
+            print('3 storage get_by_unique_key %0.6f' % (time.time() - start_time))
         except NoResultFound:
+            print('4 storage get_by_unique_key %0.6f' % (time.time() - start_time))
             return default
         else:
+            print('5 storage get_by_unique_key %0.6f' % (time.time() - start_time))
             return key.resource
 
     def get_rev_links(self, model, rel, *item_types):
@@ -602,7 +609,7 @@ class User(Base):
         self.name = name
         self.email = email
         self.password = password
-    
+
     @classmethod
     def get_by_username(cls, email):
         return _DBSESSION.query(cls).filter(cls.email == email).first()
