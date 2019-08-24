@@ -171,22 +171,36 @@ class AbstractCollection(Resource, Mapping):
             resource.type_info.name in resource.type_info.subtypes
 
     def get(self, name, default=None):
+        start_time = time.time()
+        print('1 sno get %0.6f' % (time.time() - start_time), name)
         resource = self.connection.get_by_uuid(name, None)
+        print('2 sno get %0.6f' % (time.time() - start_time), name)
         if resource is not None:
+            print('3 sno get %0.6f' % (time.time() - start_time), name)
             if not self._allow_contained(resource):
+                print('4 sno get %0.6f' % (time.time() - start_time), name)
                 return default
+            print('5 sno get %0.6f' % (time.time() - start_time), name)
             return resource
+        print('6 sno get %0.6f' % (time.time() - start_time), name)
         if self.unique_key is not None:
             # Give the storage a hint of which index to search.
             # If this is a collection of an abstract type,
             # the item_type will be None and we'll search all snovault indices.
+            print('7 sno get %0.6f' % (time.time() - start_time), name)
             index = getattr(self.type_info, 'item_type', None)
+            print('8 sno get %0.6f' % (time.time() - start_time), name)
             resource = self.connection.get_by_unique_key(
                 self.unique_key, name, index=index)
+            print('9 sno get %0.6f' % (time.time() - start_time), name)
             if resource is not None:
+                print('10 sno get %0.6f' % (time.time() - start_time), name)
                 if not self._allow_contained(resource):
+                    print('11 sno get %0.6f' % (time.time() - start_time), name)
                     return default
+                print('12 sno get %0.6f' % (time.time() - start_time), name)
                 return resource
+        print('13 sno get %0.6f' % (time.time() - start_time), name)
         return default
 
     def __json__(self, request):
