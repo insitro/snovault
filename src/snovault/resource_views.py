@@ -173,6 +173,8 @@ def item_view_object(context, request):
     path = request.resource_path(context)
     print('')
     print('resoure_views.py:item_view_object start', path)
+    if path == '/labs/peggy-farnham/':
+        asdf
     """ Render json structure
     1. Fetch stored properties, possibly upgrading.
     2. Link canonicalization (overwriting uuids.)
