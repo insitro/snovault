@@ -120,6 +120,11 @@ class RDBStorage(object):
                 Resource.item_type.in_(item_types)
             )
 
+        # DEBUG: SQLAlchemy-1.3.7 Error 1
+        # from batchupgrade.py", line 248
+        # ends zope.sqlalchemy-0.7.6-py3.4.egg/zope/sqlalchemy/datamanager.py", line 65
+        # with AttributeError: 'SessionTransaction' object has no attribute '_iterate_parents'
+        # FIX: Is updating zope-slqalchemy: https://github.com/zopefoundation/zope.sqlalchemy/issues/18
         for rid, in query.yield_per(self.batchsize):
             yield rid
 
