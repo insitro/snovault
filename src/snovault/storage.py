@@ -89,7 +89,9 @@ class RDBStorage(object):
 
     def get_by_uuid(self, rid, default=None):
         session = self.DBSession()
+        print('baked_query_resource', 'get_by_uuid')
         model = baked_query_resource(session).get(uuid.UUID(rid))
+        print(model)
         if model is None:
             return default
         return model
@@ -97,7 +99,9 @@ class RDBStorage(object):
     def get_by_unique_key(self, unique_key, name, default=None, index=None):
         session = self.DBSession()
         try:
+            print('baked_query_resource', 'get_by_unique_key')
             key = baked_query_unique_key(session).params(name=unique_key, value=name).one()
+            print(key)
         except NoResultFound:
             return default
         else:
@@ -602,7 +606,7 @@ class User(Base):
         self.name = name
         self.email = email
         self.password = password
-    
+
     @classmethod
     def get_by_username(cls, email):
         return _DBSESSION.query(cls).filter(cls.email == email).first()

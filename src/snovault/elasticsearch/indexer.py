@@ -259,6 +259,12 @@ def index(request):
                     snapshot_id = connection.execute('SELECT pg_export_snapshot();').scalar()
 
     if invalidated and not dry_run:
+        invalid = []
+        for uuid in invalidated:
+            invalid.append(uuid)
+            if len(invalid) >= 1:
+                break
+        invalidated = invalid
         if len(stage_for_followup) > 0:
             # Note: undones should be added before, because those uuids will (hopefully) be indexed in this cycle
             state.prep_for_followup(xmin, invalidated)
@@ -428,7 +434,7 @@ class Indexer(object):
         self.queue_type = DEFAULT_QUEUE
         if set_worker:
             self.queue_worker = self.queue_server.get_worker()
-    
+
 
     def _serve_objects_init(self, uuids):
         err_msg = 'Cannot initialize indexing process: '
