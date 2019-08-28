@@ -107,6 +107,7 @@ class RDBStorage(object):
             print('out:', out)
             q = session.query(Key).options(out).filter(Key.name == bindparam('name'), Key.value == bindparam('value'))
             print('q:', q)
+            print(unique_key, name)
             ret = q.filter(Key.name == bindparam('name'), Key.value == bindparam('value')).params(name=unique_key, value=name).one()
             print('ret:', ret)
             key = baked_query_unique_key(session).params(name=unique_key, value=name).one()
