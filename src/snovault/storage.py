@@ -111,6 +111,12 @@ class RDBStorage(object):
             key = baked_query_unique_key(session).params(name=unique_key, value=name).one()
             print(key)
             print(key.name, key.value, key.rid)
+            print('SELECT {} AS keys_name, {} AS keys_value, {} AS keys_rid'.format(
+                    keys.name,
+                    keys.value,
+                    keys.rid,
+                )
+            )
         except NoResultFound:
             return default
         else:
