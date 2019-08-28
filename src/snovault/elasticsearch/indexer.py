@@ -200,8 +200,9 @@ def index(request):
     print('asdf 2')
     if len(invalidated) > SEARCH_MAX:  # Priority cycle already set up
         flush = True
+        print('asdf 4')
     else:
-
+        print('asdf 3')
         flush = False
         if last_xmin is None:
             result['types'] = types = request.json.get('types', None)
