@@ -65,7 +65,7 @@ def includeme(config):
     config.add_route('index', '/index')
     config.scan(__name__)
     registry = config.registry
-    processes = registry.settings.get('indexer.processes')
+    processes = None # registry.settings.get('indexer.processes')
     is_indexer = registry.settings.get('indexer')
     if is_indexer:
         available_queues = [DEFAULT_QUEUE]
