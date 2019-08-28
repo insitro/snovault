@@ -101,6 +101,7 @@ class RDBStorage(object):
             print('baked_query_unique_key', 'get_by_unique_key', unique_key, name, default, index)
             print(Key.resource, Resource.data, CurrentPropertySheet.propsheet)
             print(Key, Resource, CurrentPropertySheet)
+            print(dir(Key))
             out = orm.joinedload_all(Key.resource, Resource.data, CurrentPropertySheet.propsheet, innerjoin=True)
             print('out:', out)
             ret = session.query(Key).options(out)
