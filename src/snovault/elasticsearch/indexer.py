@@ -72,7 +72,6 @@ def includeme(config):
         registry['available_queues'] = available_queues
         _update_for_uuid_queues(registry)
         if not processes:
-            print('single')
             registry[INDEXER] = Indexer(registry)
 
 def get_related_uuids(request, es, updated, renamed):
@@ -176,7 +175,7 @@ def index(request):
     # OPTIONAL: restart support
 
     result = state.get_initial_state()  # get after checking priority!
-    print('asdf 1')
+
     if xmin == -1 or len(invalidated) == 0:
         xmin = get_current_xmin(request)
 
@@ -198,20 +197,16 @@ def index(request):
             last_xmin=last_xmin,
         )
 
-    print('asdf 2')
     if len(invalidated) > SEARCH_MAX:  # Priority cycle already set up
         flush = True
-        print('asdf 4')
     else:
-        print('asdf 3')
+
         flush = False
         if last_xmin is None:
             result['types'] = types = request.json.get('types', None)
-            print('asdf 3.1')
             invalidated = list(all_uuids(request.registry, types))
             flush = True
         else:
-            print('asdf 3.2')
             txns = session.query(TransactionRecord).filter(
                 TransactionRecord.xid >= last_xmin,
             )
@@ -235,8 +230,7 @@ def index(request):
                 updated |= invalidated
 
             result['txn_count'] = txn_count
-            if False and txn_count == 0 and len(invalidated) == 0:
-                print('asdf 3.3a')
+            if txn_count == 0 and len(invalidated) == 0:
                 state.send_notices()
                 return result
 
@@ -257,7 +251,6 @@ def index(request):
                 if first_txn is not None:
                     result['first_txn_timestamp'] = first_txn.isoformat()
 
-            print('asdf 3.3')
             if invalidated and not dry_run:
                 # Exporting a snapshot mints a new xid, so only do so when required.
                 # Not yet possible to export a snapshot on a standby server:
@@ -266,10 +259,8 @@ def index(request):
                     snapshot_id = connection.execute('SELECT pg_export_snapshot();').scalar()
 
     if invalidated and not dry_run:
-        print('asdf 77')
         invalid = []
         for uuid in invalidated:
-            print(uuid)
             invalid.append(uuid)
             if len(invalid) >= 1:
                 break
