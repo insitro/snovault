@@ -89,7 +89,7 @@ class RDBStorage(object):
 
     def get_by_uuid(self, rid, default=None):
         session = self.DBSession()
-        print('baked_query_resource', 'get_by_uuid')
+        print(' baked_query_resource', 'get_by_uuid')
         model = baked_query_resource(session).get(uuid.UUID(rid))
         print(model)
         if model is None:
