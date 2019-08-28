@@ -256,6 +256,7 @@ def index(request):
                 if first_txn is not None:
                     result['first_txn_timestamp'] = first_txn.isoformat()
 
+            print('asdf 3.3')
             if invalidated and not dry_run:
                 # Exporting a snapshot mints a new xid, so only do so when required.
                 # Not yet possible to export a snapshot on a standby server:
