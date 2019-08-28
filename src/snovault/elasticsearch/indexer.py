@@ -261,6 +261,7 @@ def index(request):
     if invalidated and not dry_run:
         invalid = []
         for uuid in invalidated:
+            print(uuid)
             invalid.append(uuid)
             if len(invalid) >= 1:
                 break
