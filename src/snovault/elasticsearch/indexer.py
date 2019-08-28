@@ -235,7 +235,7 @@ def index(request):
                 updated |= invalidated
 
             result['txn_count'] = txn_count
-            if txn_count == 0 and len(invalidated) == 0:
+            if False and txn_count == 0 and len(invalidated) == 0:
                 print('asdf 3.3a')
                 state.send_notices()
                 return result
