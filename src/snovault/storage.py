@@ -105,7 +105,9 @@ class RDBStorage(object):
             print(Key.metadata)
             out = orm.joinedload_all(Key.resource, Resource.data, CurrentPropertySheet.propsheet, innerjoin=True)
             print('out:', out)
-            ret = session.query(Key).options(out).filter(Key.name == bindparam('name'), Key.value == bindparam('value')).params(name=unique_key, value=name).one()
+            q = session.query(Key).options(out)
+            print('q:', q)
+            ret = q.filter(Key.name == bindparam('name'), Key.value == bindparam('value')).params(name=unique_key, value=name).one()
             print('ret:', ret)
             key = baked_query_unique_key(session).params(name=unique_key, value=name).one()
         except NoResultFound:
