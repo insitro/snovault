@@ -175,7 +175,7 @@ def index(request):
     # OPTIONAL: restart support
 
     result = state.get_initial_state()  # get after checking priority!
-
+    print('asdf 1')
     if xmin == -1 or len(invalidated) == 0:
         xmin = get_current_xmin(request)
 
@@ -197,6 +197,7 @@ def index(request):
             last_xmin=last_xmin,
         )
 
+    print('asdf 2')
     if len(invalidated) > SEARCH_MAX:  # Priority cycle already set up
         flush = True
     else:
@@ -259,6 +260,7 @@ def index(request):
                     snapshot_id = connection.execute('SELECT pg_export_snapshot();').scalar()
 
     if invalidated and not dry_run:
+        print('asdf')
         invalid = []
         for uuid in invalidated:
             print(uuid)
