@@ -109,6 +109,8 @@ class RDBStorage(object):
             print('ret:', ret)
             print(Key.name, Key.value, Key.rid)
             key = baked_query_unique_key(session).params(name=unique_key, value=name).one()
+            print(key)
+            print(key.name, key.value, key.rid)
         except NoResultFound:
             return default
         else:
