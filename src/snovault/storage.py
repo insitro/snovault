@@ -105,18 +105,9 @@ class RDBStorage(object):
             print(Key.metadata)
             out = orm.joinedload_all(Key.resource, Resource.data, CurrentPropertySheet.propsheet, innerjoin=True)
             print('out:', out)
-            ret = session.query(Key) #.options(out)
+            ret = session.query(Key).options(out)
             print('ret:', ret)
-            print(Key.name, Key.value, Key.rid)
             key = baked_query_unique_key(session).params(name=unique_key, value=name).one()
-            print(key)
-            print(key.name, key.value, key.rid)
-            print('SELECT {} AS keys_name, {} AS keys_value, {} AS keys_rid'.format(
-                    key.name,
-                    key.value,
-                    key.rid,
-                )
-            )
         except NoResultFound:
             return default
         else:
