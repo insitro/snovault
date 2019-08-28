@@ -72,6 +72,7 @@ def includeme(config):
         registry['available_queues'] = available_queues
         _update_for_uuid_queues(registry)
         if not processes:
+            print('single')
             registry[INDEXER] = Indexer(registry)
 
 def get_related_uuids(request, es, updated, renamed):
@@ -206,9 +207,11 @@ def index(request):
         flush = False
         if last_xmin is None:
             result['types'] = types = request.json.get('types', None)
+            print('asdf 3.1')
             invalidated = list(all_uuids(request.registry, types))
             flush = True
         else:
+            print('asdf 3.2')
             txns = session.query(TransactionRecord).filter(
                 TransactionRecord.xid >= last_xmin,
             )
@@ -261,7 +264,7 @@ def index(request):
                     snapshot_id = connection.execute('SELECT pg_export_snapshot();').scalar()
 
     if invalidated and not dry_run:
-        print('asdf')
+        print('asdf 77')
         invalid = []
         for uuid in invalidated:
             print(uuid)
