@@ -97,9 +97,10 @@ class RDBStorage(object):
     def get_by_unique_key(self, unique_key, name, default=None, index=None):
         session = self.DBSession()
         try:
+            print('')
             print('baked_query_unique_key', 'get_by_unique_key')
             out = orm.joinedload_all(Key.resource, Resource.data, CurrentPropertySheet.propsheet, innerjoin=True)
-            print(out)
+            print('out:', out)
             key = baked_query_unique_key(session).params(name=unique_key, value=name).one()
         except NoResultFound:
             return default
