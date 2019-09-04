@@ -1,4 +1,5 @@
 from pyramid.httpexceptions import HTTPConflict
+from pyramid.settings import asbool
 from sqlalchemy import (
     Column,
     DDL,
@@ -35,6 +36,7 @@ from .json_renderer import json_renderer
 import boto3
 import botocore
 import json
+import time
 import transaction
 import uuid
 
@@ -44,7 +46,12 @@ _DBSESSION = None
 
 def includeme(config):
     registry = config.registry
-    registry[STORAGE] = RDBStorage(registry[DBSESSION])
+    do_time_rdbs = asbool(registry.settings.get('do_time_rdbs', False))
+    if do_time_rdbs:
+        print('Debugging: do_time_rdbs=%r' % do_time_rdbs)
+        registry[STORAGE] = TimedRDBStorage(registry[DBSESSION])
+    else:
+        registry[STORAGE] = RDBStorage(registry[DBSESSION])
     global _DBSESSION
     _DBSESSION = registry[DBSESSION]
     if registry.settings.get('blob_bucket'):
@@ -240,6 +247,41 @@ class RDBStorage(object):
             session.add(link)
 
         return to_add, to_remove
+
+
+class TimedRDBStorage(RDBStorage):
+
+    def get_by_uuid(self, rid, **kwargs):
+        start_time = time.time()
+        return_val = super().get_by_uuid(rid, **kwargs)
+        run_time = time.time() - start_time
+        print(
+            "snovault/storage.py/get_by_uuid->baked_query_resource\n"
+            "for rid:{}\n"
+            "run time:{}\n"
+            "".format(
+                rid,
+                "%0.6f" % run_time,
+            )
+        )
+        return return_val
+
+    def get_by_unique_key(self, unique_key, name, **kwargs):
+        start_time = time.time()
+        return_val = super().get_by_unique_key(unique_key, name, **kwargs)
+        run_time = time.time() - start_time
+        print(
+            "snovault/storage.py/get_by_unique_key->baked_query_unique_key\n"
+            "for unique_key:{}\n"
+            "for name:{}\n"
+            "run time:{}\n"
+            "".format(
+                unique_key,
+                name,
+                "%0.6f" % run_time,
+            )
+        )
+        return return_val
 
 
 class UUID(types.TypeDecorator):
