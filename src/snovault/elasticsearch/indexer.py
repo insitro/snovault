@@ -145,6 +145,7 @@ def get_related_uuids(request, es, updated, renamed):
 @view_config(route_name='index', request_method='POST', permission="index")
 def index(request):
     INDEX = request.registry.settings['snovault.elasticsearch.index']
+    limit_index_uuids = int(request.registry.settings.get('limit_index_uuids', 0))
     # Setting request.datastore here only works because routed views are not traversed.
     request.datastore = 'database'
     record = request.json.get('record', False)
@@ -259,6 +260,14 @@ def index(request):
                     snapshot_id = connection.execute('SELECT pg_export_snapshot();').scalar()
 
     if invalidated and not dry_run:
+        if limit_index_uuids:
+            log.warning('Debugging: limit_index_uuids=%d', limit_index_uuids)
+            invalid = []
+            for uuid in invalidated:
+                invalid.append(uuid)
+                if len(invalid) > limit_index_uuids:
+                    break
+            invalidated = invalid
         if len(stage_for_followup) > 0:
             # Note: undones should be added before, because those uuids will (hopefully) be indexed in this cycle
             state.prep_for_followup(xmin, invalidated)
