@@ -72,6 +72,7 @@ def includeme(config):
         registry['available_queues'] = available_queues
         _update_for_uuid_queues(registry)
         if not processes:
+            print('*'*10, 'single')
             registry[INDEXER] = Indexer(registry)
 
 def get_related_uuids(request, es, updated, renamed):
