@@ -96,7 +96,8 @@ class RDBStorage(object):
 
     def get_by_uuid(self, rid, default=None):
         session = self.DBSession()
-        model = baked_query_resource(session).get(uuid.UUID(rid))
+        sess_query_resource= baked_query_resource(session)
+        model = sess_query_resource.get(uuid.UUID(rid))
         if model is None:
             return default
         return model
@@ -104,6 +105,9 @@ class RDBStorage(object):
     def get_by_unique_key(self, unique_key, name, default=None, index=None):
         session = self.DBSession()
         try:
+            out = orm.joinedload_all(Key.resource, Resource.data, CurrentPropertySheet.propsheet, innerjoin=True)
+            q = session.query(Key).options(out).filter(Key.name == bindparam('name'), Key.value == bindparam('value'))
+            print('q', q)
             key = baked_query_unique_key(session).params(name=unique_key, value=name).one()
         except NoResultFound:
             return default
@@ -252,7 +256,10 @@ class RDBStorage(object):
 class TimedRDBStorage(RDBStorage):
 
     def get_by_uuid(self, rid, **kwargs):
+        return super().get_by_uuid(rid, **kwargs)
         start_time = time.time()
+        print()
+        print('TIMED')
         return_val = super().get_by_uuid(rid, **kwargs)
         run_time = time.time() - start_time
         print(
