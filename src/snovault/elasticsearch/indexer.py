@@ -262,7 +262,7 @@ def index(request):
 
     if invalidated and not dry_run:
         if limit_index_uuids:
-            log.warning('*Debugging: limit_index_uuids=%d', limit_index_uuids)
+            log.warning('**Debugging: limit_index_uuids=%d', limit_index_uuids)
             invalid = []
             for uuid in invalidated:
                 invalid.append(uuid)
