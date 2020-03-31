@@ -1,14 +1,14 @@
 ## High-level overview of search package
 
-The search module sits between a user's search request and our ElasticSearch cluster. It is responsible for converting the query string from a user's request into an ElasticSearch query, executing the query, gathering the raw results, and formatting them in a way that the frontend expects. The general goal is to keep each of these steps as decoupled as possible so that it's easy to reuse and extend the functionality in new views. For examples it's possible to create a new way of building up a query or formatting raw results and drop them into place without modifying the surrounding components.
+The search module sits between a user's search request and our ElasticSearch cluster. It is responsible for converting the query string from a user's request into an ElasticSearch query, executing the query, gathering the raw results, and formatting them in a way that the frontend expects. The general goal is to keep each of these steps as decoupled as possible so that it's easy to reuse and extend the functionality in new views [[define views here?]]. For example it's possible to create a new way of building up a query or formatting raw results and drop them into place without modifying the surrounding components.
 
 How this package is used to create Pyramid views can be seen in **src/snowflakes/search_views.py** and **src/snowflakes/tests/test_searchv2.py**. There are extensive tests for every component (e.g. **snovault/tests/test_searches_responses.py**) that document expected behavior.
 
 ### Object relationships
 
-Pyramid view (**snowflakes.search_views.py**) -> renders *FieldedResponse* (**responses.py**) -> contains many *ResponseFields* (**fields.py**)
+Pyramid view (**snowflakes.search_views.py**) -> renders *FieldedResponse* (**responses.py**) -> contains many *ResponseFields* (**fields.py**) [[I needed to read farther down to know what this paragraph really meant. Also, I had always understood that snowflakes wasn’t used in snovault. Is that no longer true?]]
 
-### Manifest of modules
+### Manifest of modules in snovault/src/snovault/elasticsearch/searches/
 * configs.py - Specialized helper classes for filtering parameters passed to certain ElasticSearch aggregations
 * decorators.py - General helper decorators for exception handling and dict filtering
 * defaults.py - Default parameters and templates used in query building (ALL_CAPS variables)
@@ -23,7 +23,7 @@ Pyramid view (**snowflakes.search_views.py**) -> renders *FieldedResponse* (**re
 
 ### Longer Examples
 
-Every *ResponseField* has a render() method that returns a dictionary with keys and values. The *ResponseFields* can be as simple or as complicated as you want as long as their render method returns a dictionary of data. The *FieldedResponse* merges all of the dictionaries from the *ResponseFields* it contains and passes it to Pyramid to render as a view.
+Every *ResponseField* has or inherits a render() method that returns a dictionary with keys and values. The *ResponseFields* can be as simple or as complicated as you want as long as their render method returns a dictionary of data. The *FieldedResponse* merges all of the dictionaries from the *ResponseFields* it contains and passes it to Pyramid to render as a view.
 
 A simple example just returns a hardcoded dictionary:
 
