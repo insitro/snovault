@@ -142,3 +142,12 @@ def ensure_list_and_filter_none(values):
 def take_one_or_return_none(values):
     if isinstance(values, list) and len(values) == 1:
         return values[0]
+
+
+def get_uuids_from_file(path):
+    with open(path, 'r') as f:
+        uuids = [
+            uuid.strip()
+            for uuid in f.readlines()
+        ]
+    return uuids
