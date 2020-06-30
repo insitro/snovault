@@ -5,6 +5,7 @@ from elasticsearch.exceptions import (
     TransportError,
 )
 from pyramid.view import view_config
+from pyramid.settings import asbool
 from sqlalchemy.exc import StatementError
 from snovault import (
     COLLECTIONS,
@@ -652,9 +653,8 @@ def all_uuids(registry, types=None):
             continue
         for uuid in collection:
             yield str(uuid)
-    small_db_path = registry.settings.get('small_db_path', None)
-    if small_db_path:
-        for uuid in get_uuids_from_file(small_db_path):
+    if asbool(registry.settings.get('use_small_db', False)):
+        for uuid in get_uuids_from_file(registry.settings.get('small_db_path')):
             yield uuid
         return
     for collection_name in sorted(collections.by_item_type):
