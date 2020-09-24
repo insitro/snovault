@@ -4422,8 +4422,6 @@ def test_searches_queries_top_hits_query_factory_build_query(dummy_request):
                 'aggs': {
                     'types': {
                         'terms': {
-                            'exclude': [],
-                            'include': [],
                             'field': 'embedded.@type',
                             'size': 10
                         },
@@ -4587,7 +4585,6 @@ def test_searches_queries_top_hits_query_factory_make_top_hits_by_type_aggregati
     assert actual == {
         'terms': {
             'include': ['Experiment'],
-            'exclude': [],
             'size': 10,
             'field': 'embedded.@type'
         },
@@ -4631,8 +4628,6 @@ def test_searches_queries_top_hits_query_factory_add_filtered_top_hits_aggregati
                 'aggs': {
                     'types': {
                         'terms': {
-                            'include': [],
-                            'exclude': [],
                             'field': 'embedded.@type',
                             'size': 10
                         },
