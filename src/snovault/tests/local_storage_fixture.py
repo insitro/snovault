@@ -81,6 +81,7 @@ def initdb(datadir, redis_port, echo=False):
         print(f"Redis Config created: {redis_config_path}")
     return redis_config_path
 
+
 def server_process(redis_config_path, redis_port, echo=False):
     '''Start redis server'''
     args = [
@@ -111,8 +112,8 @@ def _main():
 
     try:
         print(f"Starting in dir: {datadir}")
-        redis_config_dir = initdb(datadir, echo=True)
-        redis_process = server_process(redis_config_dir, echo=True)
+        redis_config_dir = initdb(datadir, 6378, echo=True)
+        redis_process = server_process(redis_config_dir, 6378, echo=True)
     except Exception as ecp:  # pylint: disable=broad-except
         _cleanup()
         shutil.rmtree(datadir)

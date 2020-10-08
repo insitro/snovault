@@ -1,5 +1,8 @@
-from redis import StrictRedis
+import binascii
 
+from os import urandom
+
+from redis import StrictRedis
 from pyramid.view import view_config
 
 from snovault.interfaces import LOCAL_STORAGE
@@ -17,23 +20,19 @@ def local_storage(request):
 
 
 class LocalStoreClient():
-    client = None
     
-    def __init__(self, redis_db=0, local_store=None):
-        if local_store:
-            self.client = StrictRedis(
-                charset="utf-8",
-                decode_responses=True,
-                db=redis_db,
-                host='localhost',
-                port=6379,
-                socket_timeout=5,
-            )
-        else:
-            # ephemeral storage objects.
-            self.state = {}
-            self.events = []
-            self.items = {}
+    def __init__(self, db=0, host='localhost', port=6379, timeout=5):
+        self.client = StrictRedis(
+            charset="utf-8",
+            decode_responses=True,
+            db=db,
+            host=host,
+            port=port,
+            socket_timeout=timeout,
+        )
+
+    def ping(self):
+        return self.client.ping()
 
     def get_tag(self, num_bytes=8):
         return binascii.b2a_hex(urandom(num_bytes)).decode('utf-8')
