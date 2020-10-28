@@ -11,8 +11,8 @@ INDEXER = 'indexer'
 RESOURCES_INDEX = 'snovault-resources'
 
 # Shared Vars
+MAX_CLAUSES_FOR_ES = 8192
 SEARCH_MAX = 99999  # OutOfMemoryError if too high
-
 
 class ICachedItem(Interface):
     """ Marker for cached Item

@@ -35,6 +35,7 @@ from snovault.storage import TransactionRecord
 from snovault.elasticsearch.interfaces import (
     ELASTIC_SEARCH,
     INDEXER,
+    MAX_CLAUSES_FOR_ES,
     RESOURCES_INDEX,
     SEARCH_MAX,
     all_types,
@@ -56,7 +57,6 @@ from snovault.elasticsearch.remote_indexing_node import (
 es_logger = logging.getLogger("elasticsearch")
 es_logger.setLevel(logging.ERROR)
 log = logging.getLogger('snovault.elasticsearch.es_index_listener')
-MAX_CLAUSES_FOR_ES = 8192
 DEFAULT_QUEUE = 'Simple'
 
 
