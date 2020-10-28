@@ -1,32 +1,43 @@
-import os
 import boto3
+import copy
+import datetime
+import json
+import logging
+import os
+import pytz
+import requests
+import time
+
 
 from botocore.config import Config
 from botocore.exceptions import ClientError
+
+from urllib3.exceptions import ReadTimeoutError
+
+from sqlalchemy.exc import StatementError
+
 from elasticsearch.exceptions import (
     ConflictError,
     ConnectionError,
     NotFoundError,
     TransportError,
 )
+
 from pyramid.view import view_config
 from pyramid.settings import asbool
-from sqlalchemy.exc import StatementError
+
 from snovault import (
     COLLECTIONS,
     DBSESSION,
     STORAGE
 )
-from snovault.storage import (
-    TransactionRecord,
-)
-from urllib3.exceptions import ReadTimeoutError
-from .interfaces import (
+from snovault.storage import TransactionRecord
+from snovault.elasticsearch.interfaces import (
     ELASTIC_SEARCH,
     INDEXER,
     RESOURCES_INDEX,
 )
-from .indexer_state import (
+from snovault.elasticsearch.indexer_state import (
     IndexerState,
     all_uuids,
     all_types,
@@ -36,15 +47,8 @@ from .indexer_state import (
     INDEXING_NODE_INDEX,
     AWS_REGION,
 )
-from .simple_queue import SimpleUuidServer
+from snovault.elasticsearch.simple_queue import SimpleUuidServer
 
-import datetime
-import logging
-import pytz
-import time
-import copy
-import json
-import requests
 
 es_logger = logging.getLogger("elasticsearch")
 es_logger.setLevel(logging.ERROR)

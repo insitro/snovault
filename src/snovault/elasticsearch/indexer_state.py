@@ -1,37 +1,43 @@
-from itertools import chain
-from itertools import zip_longest
+import boto3
+import copy
+import datetime
+import json
+import logging
+import pytz
+import re
+import requests
+import socket
+import time
+
+from itertools import (
+    chain,
+    zip_longest,
+)
+
+from urllib3.exceptions import ReadTimeoutError
+
+from sqlalchemy.exc import StatementError
+
 from elasticsearch.exceptions import (
     ConflictError,
     ConnectionError,
     NotFoundError,
     TransportError,
 )
+
 from pyramid.view import view_config
 from pyramid.settings import asbool
-from sqlalchemy.exc import StatementError
+
 from snovault import (
     COLLECTIONS,
     DBSESSION,
     STORAGE
 )
-from snovault.storage import (
-    TransactionRecord,
-)
-from urllib3.exceptions import ReadTimeoutError
-from .interfaces import (
+from snovault.storage import TransactionRecord
+from snovault.elasticsearch.interfaces import (
     ELASTIC_SEARCH,
     INDEXER
 )
-import datetime
-import logging
-import pytz
-import time
-import copy
-import json
-import requests
-import re
-import boto3
-import socket
 
 
 AWS_REGION = 'us-west-2'
@@ -39,11 +45,10 @@ _HOSTNAME = socket.gethostname()
 SEARCH_MAX = 99999  # OutOfMemoryError if too high
 HEAD_NODE_INDEX = 'head_node'
 INDEXING_NODE_INDEX = 'indexing_node'
-
-
 es_logger = logging.getLogger("elasticsearch")
 es_logger.setLevel(logging.ERROR)
 log = logging.getLogger('snovault.elasticsearch.es_index_listener')
+
 
 def includeme(config):
     config.add_route('_indexer_state', '/_indexer_state')

@@ -1,24 +1,27 @@
+import json
 import logging
+import sys
 
-from snovault.json_renderer import json_renderer
-from snovault.util import get_root_request
 from elasticsearch import Elasticsearch
 from elasticsearch.connection import Urllib3HttpConnection
 from elasticsearch.serializer import SerializationError
+
 from pyramid.settings import (
     asbool,
     aslist,
 )
-from .interfaces import (
+
+from snovault.json_renderer import json_renderer
+from snovault.util import get_root_request
+
+from snovault.elasticsearch.interfaces import (
     APP_FACTORY,
     ELASTIC_SEARCH,
     INDEXER,
 )
-import json
-import sys
+
+
 PY2 = sys.version_info.major == 2
-
-
 ROOT_LOG = logging.getLogger('root')
 
 

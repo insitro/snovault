@@ -6,29 +6,29 @@ To load the initial data:
     %(prog)s production.ini
 
 """
-from pyramid.paster import get_app
+import collections
+import json
+import logging
+
 from functools import reduce
+
+from pyramid.paster import get_app
+
 from snovault import (
     COLLECTIONS,
     TYPES,
 )
 from snovault.schema_utils import combine_schemas
-from .interfaces import (
+
+from snovault.elasticsearch.interfaces import (
     ELASTIC_SEARCH,
     RESOURCES_INDEX,
 )
-import collections
-import json
-import logging
 
 
 log = logging.getLogger(__name__)
-
-
 EPILOG = __doc__
-
 log = logging.getLogger(__name__)
-
 # An index to store non-content metadata
 META_MAPPING = {
     '_all': {
@@ -47,8 +47,6 @@ META_MAPPING = {
         },
     ],
 }
-
-
 PATH_FIELDS = ['submitted_file_name']
 NON_SUBSTRING_FIELDS = ['uuid', '@id', 'submitted_by', 'md5sum',
                         'references', 'submitted_file_name']

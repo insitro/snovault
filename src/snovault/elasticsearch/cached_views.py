@@ -1,10 +1,11 @@
 """ Cached views used when model was pulled from elasticsearch.
 """
-
 from itertools import chain
+
 from pyramid.httpexceptions import HTTPForbidden
 from pyramid.view import view_config
-from .interfaces import ICachedItem
+
+from snovault.elasticsearch.interfaces import ICachedItem
 
 
 def includeme(config):

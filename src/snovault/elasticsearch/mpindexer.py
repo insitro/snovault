@@ -1,26 +1,31 @@
+import atexit
+import logging
 import os
-from snovault import DBSESSION
+import time
+import transaction
+
 from contextlib import contextmanager
+
 from multiprocessing import get_context
 from multiprocessing.pool import Pool
+
 from pyramid.decorator import reify
 from pyramid.request import apply_request_extensions
 from pyramid.threadlocal import (
     get_current_request,
     manager,
 )
-import atexit
-import logging
-import time
-import transaction
-from .indexer import (
+
+from snovault import DBSESSION
+from snovault.elasticsearch.indexer import (
     INDEXER,
     Indexer,
 )
-from .interfaces import (
+from snovault.elasticsearch.interfaces import (
     APP_FACTORY,
     ELASTIC_SEARCH,
 )
+
 
 log = logging.getLogger('snovault.elasticsearch.es_index_listener')
 
