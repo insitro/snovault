@@ -37,6 +37,7 @@ from snovault.storage import TransactionRecord
 from snovault.elasticsearch.interfaces import (
     ELASTIC_SEARCH,
     INDEXER,
+    SEARCH_MAX,
     all_types,
     all_uuids,
 )
@@ -44,7 +45,6 @@ from snovault.elasticsearch.interfaces import (
 
 AWS_REGION = 'us-west-2'
 _HOSTNAME = socket.gethostname()
-SEARCH_MAX = 99999  # OutOfMemoryError if too high
 HEAD_NODE_INDEX = 'head_node'
 INDEXING_NODE_INDEX = 'indexing_node'
 es_logger = logging.getLogger("elasticsearch")

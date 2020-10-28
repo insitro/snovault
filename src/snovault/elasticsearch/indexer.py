@@ -36,12 +36,12 @@ from snovault.elasticsearch.interfaces import (
     ELASTIC_SEARCH,
     INDEXER,
     RESOURCES_INDEX,
+    SEARCH_MAX,
     all_types,
     all_uuids,
 )
 from snovault.elasticsearch.indexer_state import (
     IndexerState,
-    SEARCH_MAX,
     setup_indexing_nodes,
     HEAD_NODE_INDEX,
     INDEXING_NODE_INDEX,

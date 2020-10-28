@@ -13,9 +13,6 @@ from snovault.elasticsearch.interfaces import (
 )
 
 
-SEARCH_MAX = (2 ** 31) - 1
-
-
 def includeme(config):
     from snovault import STORAGE
     registry = config.registry

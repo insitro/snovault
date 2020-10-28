@@ -10,6 +10,9 @@ SNP_SEARCH_ES = 'snp_search'
 INDEXER = 'indexer'
 RESOURCES_INDEX = 'snovault-resources'
 
+# Shared Vars
+SEARCH_MAX = 99999  # OutOfMemoryError if too high
+
 
 class ICachedItem(Interface):
     """ Marker for cached Item
