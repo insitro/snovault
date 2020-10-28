@@ -40,14 +40,17 @@ from snovault.elasticsearch.interfaces import (
     all_types,
     all_uuids,
 )
-from snovault.elasticsearch.indexer_state import (
-    IndexerState,
-    setup_indexing_nodes,
+from snovault.elasticsearch.indexer_state import IndexerState
+from snovault.elasticsearch.simple_queue import SimpleUuidServer
+from snovault.elasticsearch.remote_indexing_node import (
+    AWS_REGION,
     HEAD_NODE_INDEX,
     INDEXING_NODE_INDEX,
-    AWS_REGION,
+    determine_indexing_protocol,
+    send_sqs_msg,
+    get_nodes,
+    setup_indexing_nodes,
 )
-from snovault.elasticsearch.simple_queue import SimpleUuidServer
 
 
 es_logger = logging.getLogger("elasticsearch")
@@ -55,14 +58,6 @@ es_logger.setLevel(logging.ERROR)
 log = logging.getLogger('snovault.elasticsearch.es_index_listener')
 MAX_CLAUSES_FOR_ES = 8192
 DEFAULT_QUEUE = 'Simple'
-# Allow three minutes for indexer to stop before head indexer process continues
-_REMOTE_INDEXING_SHUTDOWN_SLEEP = 3*60
-# Allow indexer to remain up for 30 minutes after indexing before being shutdown
-_REMOTE_INDEXING_SHUTDOWN = 15*60
-# Allow indexer 20 minutes to startup before head indexer thread takes over indexing
-_REMOTE_INDEXING_STARTUP = 10*60
-# The number of uuids needed to start a remote indexer
-_REMOTE_INDEXING_THRESHOLD = 10000
 
 
 def _update_for_uuid_queues(registry):
@@ -163,181 +158,6 @@ def get_related_uuids(request, es, updated, renamed):
     return (related_set, False)
 
 
-def _determine_indexing_protocol(request, uuid_count):
-    remote_indexing = asbool(request.registry.settings.get('remote_indexing', False))
-    if not remote_indexing:
-        return False
-    try:
-        indexer_short_uuids = int(request.registry.settings.get('indexer_short_uuids', 0))
-        remote_indexing_threshold = int(
-            request.registry.settings.get(
-                'remote_indexing_threshold',
-                _REMOTE_INDEXING_THRESHOLD,
-            )
-        )
-        if indexer_short_uuids > 0:
-            uuid_count = indexer_short_uuids
-    except ValueError:
-        log.warning('ValueError casting remote indexing threshold to an int')
-        remote_indexing_threshold = _REMOTE_INDEXING_THRESHOLD
-    if uuid_count < remote_indexing_threshold:
-        return False
-    return True
-
-
-def _send_sqs_msg(
-            cluster_name,
-            remote_indexing,
-            body,
-            delay_seconds=0,
-            save_event=False,
-        ):
-    did_fail = True
-    msg_attrs = {
-        'cluster_name': cluster_name,
-        'remote_indexing': '0' if remote_indexing else '1',
-        'save_event': '0' if save_event else '1',
-    }
-    msg_attrs = {
-        key: {'DataType': 'String', 'StringValue': val}
-        for key, val in msg_attrs.items()
-    }
-    boto_session = boto3.Session(region_name=AWS_REGION)
-    sqs_resource = boto_session.resource('sqs')
-    watch_dog = 3
-    attempts = 0
-    while attempts < watch_dog:
-        attempts += 1
-        try: 
-            queue_arn = sqs_resource.get_queue_by_name(QueueName='ec2_scheduler_input')
-            if queue_arn:
-                response = sqs_resource.meta.client.send_message(
-                    QueueUrl=queue_arn.url,
-                    DelaySeconds=delay_seconds,
-                    MessageAttributes=msg_attrs,
-                    MessageBody=body,
-                )
-                if response.get('ResponseMetadata', {}).get('HTTPStatusCode') == 200:
-                    log.warning(f"Remote indexing _send_sqs_msg: {body}")
-                    did_fail = False
-                    break
-        except ClientError as ecp:
-            error_str = e.response.get('Error', {}).get('Code', 'Unknown')
-            log.warning(f"({attempts} of {watch_dog}) Indexer could not send message to queue: {error_str}")
-    return did_fail
-
-
-def _get_nodes(request, indexer_state):
-    label = ''
-    continue_on = False
-    did_timeout = False
-    # Get local/remote indexing state
-    head_node, indexing_node, time_now, did_fail, is_indexing_node = setup_indexing_nodes(
-        request, indexer_state
-    )
-    this_node = head_node
-    other_node = indexing_node
-    if is_indexing_node:
-        this_node = indexing_node
-        other_node = head_node
-    if did_fail:
-        did_timeout = True
-        return this_node, other_node, continue_on, did_timeout
-    this_time_in_state = time_now - float(this_node['last_run_time'])
-    other_time_in_state = time_now - float(other_node['last_run_time'])
-    # Check for early return if indexing is running
-    if this_node['node_index'] == HEAD_NODE_INDEX:
-        if other_node['done_indexing']:
-            label = 'Head node with remote finished indexing.  Reset both es node states.'
-            this_node, other_node, time_now, did_fail, is_indexing_node = setup_indexing_nodes(
-                request,
-                indexer_state,
-                reset=True
-            )
-        elif other_node['started_indexing']:
-            # not catching if instance is on but app not running?  maybe the indexer state
-            #  needs update a flag saying it is still running
-            if other_node['instance_state'] in ['running', 'pending']:
-                # label = 'Head node with remote indexing running'
-                pass
-            else:
-                label = 'Head node with remote indexing running, permature shutdown'
-                log.warning(f"Indexer permature shutdown: sleep {_REMOTE_INDEXING_SHUTDOWN_SLEEP} seconds")
-                time.sleep(_REMOTE_INDEXING_SHUTDOWN_SLEEP)
-                continue_on = True
-        elif this_node['waiting_on_remote']:
-            label = 'Head node waiting on remote indexing to start'
-            if this_time_in_state > _REMOTE_INDEXING_STARTUP:
-                this_node, other_node, time_now, did_fail, is_indexing_node = setup_indexing_nodes(
-                    request,
-                    indexer_state,
-                    reset=True
-                )
-                if not other_node['instance_state'] in ['stopped', 'stopping']:
-                    instance_name = this_node['instance_name']
-                    remote_indexing = False
-                    _ = _send_sqs_msg(
-                        f"{instance_name}-indexer",
-                        remote_indexing,
-                        'Turn OFF remote indexer for failed start',
-                        delay_seconds=0,
-                        save_event=False
-                    )
-                    log.warning(f"Indexer failed start shutdown sleep: {_REMOTE_INDEXING_SHUTDOWN_SLEEP} seconds")
-                    time.sleep(_REMOTE_INDEXING_SHUTDOWN_SLEEP)
-                else:
-                    # log.warning('Indexer failed start shutdown: Already stopped')
-                    pass
-                did_timeout = True
-        else:
-            # label = 'Head node says no indexing going on'
-            if this_time_in_state > _REMOTE_INDEXING_SHUTDOWN:
-                this_node, other_node, time_now, did_fail, is_indexing_node = setup_indexing_nodes(
-                    request,
-                    indexer_state,
-                    reset=True
-                )
-                if not other_node['instance_state'] in ['stopped', 'stopping']:
-                    label = 'Head node says no indexing going on - and shutting down indexer'
-                    instance_name = this_node['instance_name']
-                    remote_indexing = False
-                    _ = _send_sqs_msg(
-                        f"{instance_name}-indexer",
-                        remote_indexing,
-                        'Turn OFF remote indexer for shutdown',
-                        delay_seconds=0,
-                        save_event=False
-                    )
-                    log.warning(f"Indexer timeout shutdown: sleep {_REMOTE_INDEXING_SHUTDOWN_SLEEP} seconds")
-                    time.sleep(_REMOTE_INDEXING_SHUTDOWN_SLEEP)
-                else:
-                    # log.warning('Indexer timeout shutdown: Already stopped')
-                    pass
-            continue_on = True
-    elif this_node['node_index'] == INDEXING_NODE_INDEX:
-        if other_node['waiting_on_remote']:
-            if not this_node['started_indexing']:
-                label = 'Index node received signal to start indexing'
-                continue_on = True
-            elif this_node['done_indexing']:
-                label = 'Index node finished indexing.  Waiting on head node to pick up status.'
-            elif this_node['started_indexing']:
-                label = 'Index node has just finished indexing'
-                this_node['done_indexing'] = True
-                this_node['last_run_time'] = str(float(time.time()))
-                indexer_state.put_obj(this_node['node_index'], this_node)
-            else:
-                label = 'Index node is in limbo with head node waiting_on_remote.  May correct on next loop.'
-        else:
-            label = 'Index node finished indexing and has been reset by head node.  Waiting to be shutdown by head node.'
-    if label:
-        if other_node['instance_state'] == 'stopped':
-            log.warning(f"Remote indexing _get_nodes: {label}. this_time: {this_time_in_state:0.6f}, other_time: stopped")
-        else:
-            log.warning(f"Remote indexing _get_nodes: {label}. this_time: {this_time_in_state:0.6f}, other_time: {other_time_in_state:0.6f}")
-    return this_node, other_node, continue_on, did_timeout
-
-
 @view_config(route_name='index', request_method='POST', permission="index")
 def index(request):
     # Setting request.datastore here only works because routed views are not traversed.
@@ -358,13 +178,13 @@ def index(request):
     remote_indexing = asbool(request.registry.settings.get('remote_indexing', False))
     did_timeout = False
     if remote_indexing:
-        this_node, other_node, continue_on, did_timeout = _get_nodes(request, indexer_state)
+        this_node, other_node, continue_on, did_timeout = get_nodes(request, indexer_state)
         if not did_timeout and not continue_on:
             # Node state implies we do not need to run any code right now
             return {'this_node': this_node, 'other_node': other_node}
     elif this_node and other_node:
         # if remote node states exists and remote_indexing false then this is the remote indexer
-        this_node, other_node, continue_on, did_timeout = _get_nodes(request, indexer_state)
+        this_node, other_node, continue_on, did_timeout = get_nodes(request, indexer_state)
         if not did_timeout and not continue_on:
             # Node state implies we do not need to run any code right now
             return {'this_node': this_node, 'other_node': other_node}
@@ -567,7 +387,7 @@ def index(request):
             if this_node['node_index'] == HEAD_NODE_INDEX:
                 # Check remote indexing
                 uuids_count = len(invalidated)
-                do_remote_indexing = _determine_indexing_protocol(request, uuids_count)
+                do_remote_indexing = determine_indexing_protocol(request, uuids_count)
                 if did_timeout:
                     log.warning(f"Remote indexing index: did_timeout.  Run on head node.")
                     head_node, indexing_node, time_now, did_fail, is_indexing_node  = setup_indexing_nodes(
