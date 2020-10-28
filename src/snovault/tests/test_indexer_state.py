@@ -2,7 +2,7 @@ import pytest
 
 
 def test_heterogeneous_stream():
-    from snovault.elasticsearch.indexer_state import heterogeneous_stream
+    from snovault.elasticsearch.interfaces import heterogeneous_stream
     gm = {'e': (x for x in [1, 2, 3, 4, 5])}
     assert list(heterogeneous_stream(gm)) == [1, 2, 3, 4, 5]
     gm = {
