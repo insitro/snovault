@@ -47,9 +47,10 @@ SnoVault JSON-LD Database Framework
     $ brew cask install adoptopenjdk8
     ```
 
-1. Elasticsearch 5.x
+1. Elasticsearch 7.x
     ```
-    $ brew install elasticsearch@5.6
+    At the time of updating brew had a pre release, 7.9.3
+    $ brew install elasticsearch
     ```
 
 1. Brew dependencies
