@@ -29,13 +29,14 @@ def _get_args_and_env(esdata, esdata_override, kwargs):
         if kwargs['version'] <= 5:
             # How elasticsearch 5 sets config path
             args.append(f"-Epath.conf={esconfig}")
+            # How to add jvm options in es5.  
+            # Must remove/rename default jvm.options file too or it doubles
+            jvm_options = _get_jvm_options(f"{esconfig}/jvm.options")
+            if jvm_options:
+                env['ES_JAVA_OPTS'] = jvm_options
         else:
             # How elasticsearch 6+ sets config path
             env["ES_PATH_CONF"] = esconfig
-        # How to add jvm options.  Must remove/rename default jvm.options file
-        jvm_options = _get_jvm_options(f"{esconfig}/jvm.options")
-        if jvm_options:
-            env['ES_JAVA_OPTS'] = jvm_options
         return args, env
     # Default 'esdata' location
     args.extend([
