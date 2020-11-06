@@ -89,7 +89,6 @@ def server_process(datadir, **kwargs):
     if kwargs.get('clear', False):
         _clear(esdata, esdata_override)
     args, env = _get_args_and_env(esdata, esdata_override, kwargs)
->>>>>>> 2da77f6bb... SNO-179-allow-devserver-set-es-config-dir
     process = subprocess.Popen(
         args,
         close_fds=True,
