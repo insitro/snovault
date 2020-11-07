@@ -16,11 +16,23 @@ from snovault.schema_utils import combine_schemas
 from .interfaces import (
     ELASTIC_SEARCH,
     RESOURCES_INDEX,
+    DEFAULT_ITEM_TYPES,
 )
 import collections
 import json
 import logging
 
+from snovault.elasticsearch.searches.defaults import (
+    BASE_FIELD_FACETS,
+    BASE_AUDIT_FACETS,
+    INTERNAL_AUDIT_FACETS,
+)
+from snovault.elasticsearch.searches.interfaces import FACETS
+
+from snovault.elasticsearch.searches.fields import (
+    TEXT_FIELDS,
+)
+import requests
 
 log = logging.getLogger(__name__)
 
@@ -48,7 +60,6 @@ META_MAPPING = {
 PATH_FIELDS = ['submitted_file_name']
 NON_SUBSTRING_FIELDS = ['uuid', '@id', 'submitted_by', 'md5sum',
                         'references', 'submitted_file_name']
-TEXT_FIELDS = ['pipeline_error_detail', 'description', 'notes']
 
 
 def sorted_pairs_hook(pairs):
@@ -507,6 +518,27 @@ def run(app, collections=None, dry_run=False):
     create_snovault_index_alias(es, indices)
 
 
+def _write_es_query(app):
+
+    print('base', BASE_FIELD_FACETS)
+    for item_type in DEFAULT_ITEM_TYPES:
+        facets = app.registry[TYPES][item_type].schema.get(FACETS)
+        if facets:
+            print('default', item_type)
+            for facet_key, facet_val in facets.items():
+                print('\t', facet_key)
+    print('base_audit')
+    for facet in BASE_AUDIT_FACETS:
+        print('\t', facet[0])
+    print('internal_audit')
+    for facet in INTERNAL_AUDIT_FACETS:
+        print('\t', facet[0])
+
+    item_type = 'Snowball'
+    r = requests.get(f"http://localhost:6543/search?type={item_type}")
+    print(r.json)
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(
@@ -514,6 +546,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument('--item-type', action='append', help="Item type")
+    parser.add_argument('--write-es-query', action='store_true', help="Output es query")
     parser.add_argument('--app-name', help="Pyramid app name in configfile")
     parser.add_argument(
         '--dry-run', action='store_true', help="Don't post to ES, just print")
@@ -523,6 +556,8 @@ def main():
     logging.basicConfig()
     app = get_app(args.config_uri, args.app_name)
 
+    if args.write_es_query:
+        return _write_es_query(app)
     # Loading app will have configured from config file. Reconfigure here:
     logging.getLogger('snovault').setLevel(logging.DEBUG)
 
