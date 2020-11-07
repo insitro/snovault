@@ -1,3 +1,5 @@
+import json
+
 from pyramid.view import view_config
 
 
@@ -49,19 +51,27 @@ def includeme(config):
     config.scan(__name__)
 
 
-DEFAULT_ITEM_TYPES = [
-    'Lab',
-    'Snowset',
-    'Snowball',
-    'Snowfort',
-    'Snowflake',
-]
-
 
 @view_config(route_name='search', request_method='GET', permission='search')
 def search(context, request):
     # Note the order of rendering matters for some fields, e.g. AllResponseField and
     # NotificationResponseField depend on results from BasicSearchWithFacetsResponseField.
+
+    # ME
+    if False:
+        params_parser = ParamsParser(request)
+        print('req_params', request.params)
+        field = BasicSearchWithFacetsResponseField(
+            default_item_types=DEFAULT_ITEM_TYPES,
+            params_parser=params_parser,
+        )
+        # has a query_builder = BasicSearchQueryFactoryWithFacets(query)
+        field._build_query()
+        name = 'app-query'
+        with open(f"../tst-query/{name}.json", "w") as fh:
+            json.dump(field.query.to_dict(), fh, indent=4, sort_keys=True)
+    # EM
+
     fr = FieldedResponse(
         _meta={
             'params_parser': ParamsParser(request)
