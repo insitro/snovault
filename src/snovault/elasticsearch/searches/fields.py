@@ -60,6 +60,8 @@ class ResponseField:
             return self.parent._meta.get(meta_field)
 
     def get_params_parser(self):
+        if self.kwargs.get('params_parser'):
+            return self.kwargs['params_parser']
         return self._get_meta_field('params_parser')
 
     def get_request(self):
@@ -132,10 +134,15 @@ class BasicSearchWithFacetsResponseField(BasicSearchResponseField):
     '''
 
     def _build_query(self):
-        self.query_builder = BasicSearchQueryFactoryWithFacets(
-            params_parser=self.get_params_parser(),
-            **self.kwargs
-        )
+        if self.kwargs.get('params_parser'):
+            self.query_builder = BasicSearchQueryFactoryWithFacets(
+                **self.kwargs
+            )
+        else:
+            self.query_builder = BasicSearchQueryFactoryWithFacets(
+                params_parser=self.get_params_parser(),
+                **self.kwargs
+            )
         self.query = self.query_builder.build_query()
 
     def _format_results(self):
