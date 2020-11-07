@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from snovault.elasticsearch.create_mapping import TEXT_FIELDS
 
 from .interfaces import ALL
 from .interfaces import AT_ID
@@ -40,6 +39,9 @@ from .responses import AuditMatrixResponseWithFacets
 from .responses import BasicMatrixResponseWithFacets
 from .responses import BasicQueryResponseWithFacets
 from .responses import RawQueryResponseWithAggs
+
+
+TEXT_FIELDS = ['pipeline_error_detail', 'description', 'notes']
 
 
 class ResponseField:

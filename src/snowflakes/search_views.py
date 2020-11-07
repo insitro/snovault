@@ -1,5 +1,8 @@
 from pyramid.view import view_config
 
+
+from snovault.elasticsearch.interfaces import DEFAULT_ITEM_TYPES
+
 from snovault.elasticsearch.searches.interfaces import AUDIT_TITLE
 from snovault.elasticsearch.searches.interfaces import MATRIX_TITLE
 from snovault.elasticsearch.searches.interfaces import REPORT_TITLE
