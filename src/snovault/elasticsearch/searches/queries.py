@@ -1,3 +1,5 @@
+import json
+
 from collections import OrderedDict
 from elasticsearch_dsl import A
 from elasticsearch_dsl import Q
@@ -886,8 +888,12 @@ class BasicSearchQueryFactoryWithFacets(BasicSearchQueryFactory):
 
     def build_query(self):
         super().build_query()
+        # HERE
         self.add_aggregations_and_aggregation_filters()
         self.add_sort()
+        name = 'app-query2'
+        with open(f"../tst-query/{name}.json", "w") as fh:
+            json.dump(self.search.to_dict(), fh, indent=4, sort_keys=True)
         return self.search
 
 
