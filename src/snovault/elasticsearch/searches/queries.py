@@ -891,10 +891,51 @@ class BasicSearchQueryFactoryWithFacets(BasicSearchQueryFactory):
         # HERE
         self.add_aggregations_and_aggregation_filters()
         self.add_sort()
-        name = 'app-query2'
-        with open(f"../tst-query/{name}.json", "w") as fh:
-            json.dump(self.search.to_dict(), fh, indent=4, sort_keys=True)
+        write_json(self.search.to_dict(), 'search-dict', is_query=True)
         return self.search
+
+
+def _fix_file_name(url_name):
+    url_name = url_name.replace('.', '')
+    url_name = url_name.replace(',', '')
+    url_name = url_name.replace(' ', '_')
+    return url_name
+
+
+def _get_json_name_from_search(d):
+    type_name = None
+    other_names = []
+    # Post filter
+    for filter_dict in d['post_filter']['bool']['must']:
+        # Loop over dicts in 'must' list
+        if 'embedded.@type' in filter_dict['terms']:
+            # Main url type only?
+            type_names = filter_dict['terms']['embedded.@type']
+            type_names.sort()
+        else:
+            for key, val in filter_dict['terms'].items():
+                # Loop over dicts in 'terms' dict
+                # Stop adding term key to file name
+                ## other_names.append(_fix_file_name(key.replace('embedded.', '')))
+                for v in val:
+                    # terms are a list too
+                    v_name = _fix_file_name(v)
+                    other_names.append(v_name)
+    type_names.sort()
+    other_names.sort()
+    type_names.extend(other_names)
+    type_names.append('query')
+    file_name = '_'.join(type_names)
+    return file_name
+
+
+def write_json(d, name, is_query=False):
+    base_path = '../tst-query/auto-json'
+    name = _get_json_name_from_search(d)
+    path = f"{base_path}/{name}.json"
+    print('$'*10, path)
+    with open(f"{base_path}/{name}.json", "w") as fh:
+        json.dump(d, fh, indent=4, sort_keys=True)
 
 
 class CollectionSearchQueryFactoryWithFacets(BasicSearchQueryFactoryWithFacets):

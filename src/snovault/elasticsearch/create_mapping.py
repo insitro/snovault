@@ -518,6 +518,20 @@ def run(app, collections=None, dry_run=False):
     create_snovault_index_alias(es, indices)
 
 
+from snovault.elasticsearch.searches.queries import write_json
+
+
+def read_json(path):
+    with open(path, "r") as fh:
+        return json.load(fh)
+
+
+def fix_url_name(url_name):
+    url_name = url_name.replace(' ', '+')
+    url_name = url_name.replace(',', '%2C')
+    return url_name
+
+
 def _write_es_query(app):
 
     print('base', BASE_FIELD_FACETS)
@@ -534,9 +548,32 @@ def _write_es_query(app):
     for facet in INTERNAL_AUDIT_FACETS:
         print('\t', facet[0])
 
+    host = 'http://localhost:6543'
+    data_type = 'search'
+    url_base = f"{host}/{data_type}"
+    query_base = 'format=json'
     item_type = 'Snowball'
-    r = requests.get(f"http://localhost:6543/search?type={item_type}")
-    print(r.json)
+    d = read_json('../tst-query/Snowball_search-dict.json')
+    print('filename', _get_json_name_from_search(d))
+    if False:
+        urls = []
+        main_url = f"{url_base}?{query_base}&type={item_type}"
+        res = requests.get(main_url)
+        res_json = res.json()
+        write_json(res_json, f"{item_type}_res-json")
+        urls.append(main_url)
+        for facet in res.json()['facets']:
+            facet_name = facet['field']
+            if facet_name == 'lab.title':
+                sub_url = f"{main_url}&{facet_name}"
+                for term in facet['terms']:
+                    term_name = term['key']
+                    term_name = term_name.replace(' ', '+')
+                    term_name = term_name.replace(',', '%2C')
+                    urls.append(f"{sub_url}={term_name}")
+                break
+        for url in urls:
+            print(url)
 
 
 def main():
