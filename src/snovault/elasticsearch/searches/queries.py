@@ -882,7 +882,61 @@ class BasicSearchQueryFactoryWithFacets(BasicSearchQueryFactory):
         super().build_query()
         self.add_aggregations_and_aggregation_filters()
         self.add_sort()
+        write_json(self.search.to_dict())
         return self.search
+
+
+def write_json(es_query_dict):
+    import json
+    from os.path import expanduser
+    home = expanduser("~")
+    base_path = f"{home}/.encoded/snovault-queries/auto-json"
+    name = _get_json_name_from_search(es_query_dict)
+    if name:
+        path = f"{base_path}/{name}.json"
+        print(f"Wrote query to path: {path}")
+        with open(path, "w") as fh:
+            json.dump(es_query_dict, fh, indent=4, sort_keys=True)
+
+
+def _get_json_name_from_search(d):
+
+    def _fix_file_name(url_name):
+        url_name = url_name.replace('.', '')
+        url_name = url_name.replace(',', '')
+        url_name = url_name.replace(' ', '_')
+        return url_name
+
+    type_names = None
+    other_names = []
+    # Post filter
+    if not d.get('post_filter', {}).get('bool', {}).get('must'):
+        return None
+    for filter_dict in d['post_filter']['bool']['must']:
+        if not 'terms' in filter_dict:
+            continue
+        # Loop over dicts in 'must' list
+        if 'embedded.@type' in filter_dict['terms']:
+            # Main url type only?
+            type_names = filter_dict['terms']['embedded.@type']
+            type_names.sort()
+        else:
+            for key, val in filter_dict['terms'].items():
+                # Loop over dicts in 'terms' dict
+                # Stop adding term key to file name
+                ## other_names.append(_fix_file_name(key.replace('embedded.', '')))
+                for v in val:
+                    # terms are a list too
+                    v_name = _fix_file_name(v)
+                    other_names.append(v_name)
+    if type_names:
+        type_names.sort()
+        other_names.sort()
+        type_names.extend(other_names)
+        type_names.append('query')
+        file_name = '_'.join(type_names)
+        return file_name
+    return None
 
 
 class CollectionSearchQueryFactoryWithFacets(BasicSearchQueryFactoryWithFacets):
