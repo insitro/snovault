@@ -903,10 +903,14 @@ def _fix_file_name(url_name):
 
 
 def _get_json_name_from_search(d):
-    type_name = None
+    type_names = None
     other_names = []
     # Post filter
+    if not d.get('post_filter', {}).get('bool', {}).get('must'):
+        return None
     for filter_dict in d['post_filter']['bool']['must']:
+        if not 'terms' in filter_dict:
+            continue
         # Loop over dicts in 'must' list
         if 'embedded.@type' in filter_dict['terms']:
             # Main url type only?
@@ -921,21 +925,24 @@ def _get_json_name_from_search(d):
                     # terms are a list too
                     v_name = _fix_file_name(v)
                     other_names.append(v_name)
-    type_names.sort()
-    other_names.sort()
-    type_names.extend(other_names)
-    type_names.append('query')
-    file_name = '_'.join(type_names)
-    return file_name
+    if type_names:
+        type_names.sort()
+        other_names.sort()
+        type_names.extend(other_names)
+        type_names.append('query')
+        file_name = '_'.join(type_names)
+        return file_name
+    return None
 
 
 def write_json(d, name, is_query=False):
     base_path = '../tst-query/auto-json'
     name = _get_json_name_from_search(d)
-    path = f"{base_path}/{name}.json"
-    print('$'*10, path)
-    with open(f"{base_path}/{name}.json", "w") as fh:
-        json.dump(d, fh, indent=4, sort_keys=True)
+    if name:
+        path = f"{base_path}/{name}.json"
+        print('$'*10, path)
+        with open(f"{base_path}/{name}.json", "w") as fh:
+            json.dump(d, fh, indent=4, sort_keys=True)
 
 
 class CollectionSearchQueryFactoryWithFacets(BasicSearchQueryFactoryWithFacets):
